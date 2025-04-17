@@ -12,9 +12,8 @@ INITIAL_LIVES = 3
 PIPE_SPAWN_INTERVAL = 1.4
 
 # Limita a mudança vertical baseada na POSIÇÃO ESTIMADA FUTURA do cano anterior
-MAX_PIPE_HEIGHT_CHANGE = 0.5  # Mudança normal (quando o anterior era estático)
-# Aumentando um pouco mais para dar folga extra
-MAX_PIPE_HEIGHT_CHANGE_AFTER_MOVING = 0.60 # Mudança maior (quando o anterior era móvel, era 0.55)
+MAX_PIPE_HEIGHT_CHANGE = 0.4
+MAX_PIPE_HEIGHT_CHANGE_AFTER_MOVING = 0.60
 
 # Configurações para movimento vertical dos canos
 PIPE_MOVE_CHANCE = 0.35
@@ -30,15 +29,21 @@ BIRD_ANIMATION_SPEED = 0.1
 POWERUP_SPRITE_PATH = "sprites/powerups.png"
 POWERUP_COLS = 2
 POWERUP_ROWS = 1
-POWERUP_TYPES = ['life']
+POWERUP_TYPES = ['life', 'speed']
 
 # Tamanhos para Desenho
 BIRD_DRAW_WIDTH = 0.12
-BIRD_DRAW_HEIGHT = 0.12 # Ajustada pelo aspect ratio
+BIRD_DRAW_HEIGHT = 0.12 # Será ajustada pelo aspect ratio em main.py
 POWERUP_DRAW_SIZE = 0.08
 
-# Tamanho para Colisão
-BIRD_COLLISION_RADIUS = 0.045
+# --- Tamanho para Colisão ---
+# REMOVIDO: BIRD_COLLISION_RADIUS
+# Fatores de escala para a hitbox AABB relativa ao tamanho de desenho.
+# Valores < 1.0 tornam a hitbox menor (mais forgiving).
+BIRD_COLLISION_SCALE_W = 0.85 # Ex: 85% da largura de desenho
+BIRD_COLLISION_SCALE_H = 0.75 # Ex: 75% da altura de desenho
+
+# Power-up ainda usa um raio/metade do tamanho para colisão (mais simples)
 POWERUP_COLLISION_SIZE = 0.04
 
 # Variáveis Globais de Jogo
@@ -61,7 +66,7 @@ BIRD_Y = 0.0
 # Variáveis Globais para Sprites
 bird_texture_id = None
 bird_frames_uv = []
-bird_frame_aspect = 1.0
+bird_frame_aspect = 1.0 # Calculado em main.py
 bird_current_frame = 0
 last_frame_time = 0.0
 
