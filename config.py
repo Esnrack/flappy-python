@@ -9,7 +9,7 @@ PIPE_WIDTH = 0.15
 PIPE_GAP = 0.4
 PIPE_SPEED = 0.5 # Horizontal speed
 INITIAL_LIVES = 3
-PIPE_SPAWN_INTERVAL = 1.4
+PIPE_SPAWN_INTERVAL = 1.4    
 
 # Limita a mudança vertical baseada na POSIÇÃO ESTIMADA FUTURA do cano anterior
 MAX_PIPE_HEIGHT_CHANGE = 0.5  # Mudança normal (quando o anterior era estático)
