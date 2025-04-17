@@ -1,7 +1,8 @@
-# powerup.py
+# powerup.py.
 from OpenGL.GL import *
 import config # Acessa configurações globais (texture id, uvs, draw size)
 import random # Usado em game_pipes.py
+import time
 
 class PowerUp:
     """Representa um item de power-up no jogo."""

@@ -1,4 +1,4 @@
- # main.py
+# main.py
 import glfw
 from OpenGL.GL import *
 from OpenGL.GLUT import *
@@ -12,6 +12,7 @@ from powerup import draw_powerups
 from rendering import draw_ground, draw_text
 from update import update
 from input import key_callback
+from high_score import load_high_score
 
 # --- Função para Carregar Textura ---
 def load_texture(path):
@@ -73,6 +74,10 @@ def main():
     # Inicializa GLUT (necessário para draw_text)
     # Precisa ser chamado antes de criar a janela GLFW em alguns sistemas
     glutInit()
+
+    # Carrega o recorde atual (adicionar esta linha)
+    config.high_score = load_high_score()
+    print(f"Recorde carregado: {config.high_score}")
 
     # Cria a janela
     window = glfw.create_window(config.WINDOW_WIDTH, config.WINDOW_HEIGHT, "Flappy Bird com Sprites", None, None)

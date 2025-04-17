@@ -68,3 +68,6 @@ last_frame_time = 0.0
 powerup_texture_id = None
 powerup_uvs = {}
 powerup_frame_aspect = 1.0
+
+high_score = 0  # Variável para armazenar o recorde atual
+HIGH_SCORE_FILE = "high_score.txt"  # Nome do arquivo onde o recorde será salvo

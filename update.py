@@ -3,6 +3,7 @@ import config
 import time
 from game_pipes import update_pipes # Atualiza canos (posição, geração, remoção) e powerups (posição, remoção)
 from collisions import check_collision # Verifica colisões
+from high_score import update_high_score
 
 def update(delta_time):
     """Atualiza o estado completo do jogo a cada frame."""
@@ -18,7 +19,10 @@ def update(delta_time):
 
     # --- Lógica Principal do Jogo (Só executa se o jogo estiver rodando) ---
     if not config.game_started or config.game_over:
-        return # Pausa a física, geração de canos, colisões etc.
+        # Se o jogo terminou, verifica se bateu o recorde
+        if config.game_over:
+            update_high_score(config.score)
+        return # Sai da função se o jogo não está ativo
 
     # --- Física do Pássaro ---
     config.bird_velocity += config.GRAVITY * delta_time # Aplica gravidade
@@ -44,6 +48,10 @@ def update(delta_time):
             print("Speed boost acabou.") # Debug
         else:
             print("Invulnerabilidade acabou.") # Debug (se não era speed boost)
+    
+    # Atualizar o high score em tempo real também (opcional)
+    if config.score > config.high_score:
+        update_high_score(config.score)
 
     # Poderia adicionar lógica de aumento de dificuldade com o tempo/score aqui
     # Ex: aumentar PIPE_SPEED ou diminuir PIPE_SPAWN_INTERVAL gradualmente
