@@ -12,6 +12,23 @@ from powerup import draw_powerups
 from rendering import draw_ground, draw_text
 from update import update
 from input import key_callback
+from high_score import load_high_score
+
+def main():
+    global window
+    if not glfw.init():
+        print("Falha ao inicializar GLFW")
+        return
+
+    # Inicializa GLUT (necessário para draw_text)
+    glutInit()
+    
+    # Carrega o recorde atual (adicionar esta linha)
+    config.high_score = load_high_score()
+    print(f"Recorde carregado: {config.high_score}")
+
+    # Cria a janela
+    window = glfw.create_window(config.WINDOW_WIDTH, config.WINDOW_HEIGHT, "Flappy Bird com Sprites", None, None)
 
 # --- Função para Carregar Textura ---
 def load_texture(path):
@@ -34,6 +51,7 @@ def load_texture(path):
         return texture_id, img.width, img.height
     except FileNotFoundError:
         print(f"Erro Crítico: Arquivo de sprite não encontrado em {path}")
+        # Aqui você poderia talvez carregar uma textura padrão de 'erro' ou sair
         return None, 0, 0
     except Exception as e:
         print(f"Erro ao carregar textura {path}: {e}")
@@ -43,8 +61,7 @@ def load_texture(path):
 def calculate_sprite_uvs(sheet_width, sheet_height, cols, rows):
     """Calcula as coordenadas de textura (UV) para cada frame em uma sprite sheet."""
     uvs = []
-    if cols <= 0 or rows <= 0 or sheet_width <= 0 or sheet_height <= 0:
-        return uvs, 1.0 # Evita divisão por zero e dimensões inválidas
+    if cols <= 0 or rows <= 0: return uvs, 1.0 # Evita divisão por zero
 
     frame_width = sheet_width / cols
     frame_height = sheet_height / rows
@@ -61,7 +78,7 @@ def calculate_sprite_uvs(sheet_width, sheet_height, cols, rows):
             # print(f"Frame ({r},{c}): UV=({u0:.2f},{v0:.2f}) a ({u1:.2f},{v1:.2f})") # Debug
     return uvs, aspect_ratio
 
-# Variável global para a janela
+# Variável global para a janela (se já não estiver definida assim)
 window = None
 
 def main():
@@ -71,7 +88,6 @@ def main():
         return
 
     # Inicializa GLUT (necessário para draw_text)
-    # Precisa ser chamado antes de criar a janela GLFW em alguns sistemas
     glutInit()
 
     # Cria a janela
@@ -101,7 +117,7 @@ def main():
         if config.bird_frame_aspect > 0:
             config.BIRD_DRAW_HEIGHT = config.BIRD_DRAW_WIDTH / config.bird_frame_aspect
         else:
-             config.BIRD_DRAW_HEIGHT = config.BIRD_DRAW_WIDTH # Mantém quadrado se inválido
+             config.BIRD_DRAW_HEIGHT = config.BIRD_DRAW_WIDTH # Mantém quadrado se aspect ratio for inválido
         config.last_frame_time = time.time() # Inicia timer da animação
         print(f"Frames do pássaro calculados: {len(config.bird_frames_uv)}, Aspect Ratio: {config.bird_frame_aspect:.2f}")
     else:
@@ -112,14 +128,12 @@ def main():
     config.powerup_texture_id, sheet_w, sheet_h = load_texture(config.POWERUP_SPRITE_PATH)
     if config.powerup_texture_id and sheet_w > 0 and sheet_h > 0:
         powerup_frame_uvs, config.powerup_frame_aspect = calculate_sprite_uvs(sheet_w, sheet_h, config.POWERUP_COLS, config.POWERUP_ROWS)
-        # Mapear UVs para tipos de power-up
-        if len(config.POWERUP_TYPES) > len(powerup_frame_uvs):
-            print(f"Aviso: Mais tipos de power-up ({len(config.POWERUP_TYPES)}) do que frames na sheet ({len(powerup_frame_uvs)})")
-
+        # Mapear UVs para tipos de power-up definidos em config.POWERUP_TYPES
         for i, type_name in enumerate(config.POWERUP_TYPES):
             if i < len(powerup_frame_uvs):
                 config.powerup_uvs[type_name] = powerup_frame_uvs[i]
             else:
+                print(f"Aviso: Menos frames na sheet ({len(powerup_frame_uvs)}) do que tipos de power-up definidos ({len(config.POWERUP_TYPES)})")
                 break # Para de mapear se acabaram os frames
         print(f"UVs dos power-ups mapeados: {config.powerup_uvs}")
     else:
@@ -138,29 +152,24 @@ def main():
         delta_time = current_time - last_time
         last_time = current_time
 
-        # Limita delta_time para evitar saltos grandes
-        delta_time = min(delta_time, 0.1) # Max 0.1s por frame
+        # Limita delta_time para evitar saltos grandes (opcional mas recomendado)
+        delta_time = min(delta_time, 0.1) # Ex: não processar mais que 0.1s por frame
 
-        update(delta_time) # Atualiza estado do jogo
-        render()           # Desenha o frame
-        glfw.poll_events() # Processa eventos
+        update(delta_time) # Atualiza estado do jogo e animação
+        render()           # Desenha o frame atual
+        glfw.poll_events() # Processa eventos (teclado, janela, etc.)
 
     # --- Limpeza ---
     print("Encerrando...")
+    # Deleta as texturas da memória da GPU
     textures_to_delete = []
     if config.bird_texture_id:
         textures_to_delete.append(config.bird_texture_id)
     if config.powerup_texture_id:
          textures_to_delete.append(config.powerup_texture_id)
     if textures_to_delete:
-        # Precisa de um contexto GL ativo para deletar
-        glfw.make_context_current(window)
-        try:
-            glDeleteTextures(textures_to_delete)
-            print(f"Texturas deletadas: {textures_to_delete}")
-        except Exception as e:
-            print(f"Erro ao deletar texturas: {e}")
-
+        glDeleteTextures(textures_to_delete)
+        print(f"Texturas deletadas: {textures_to_delete}")
 
     glfw.terminate()
     print("Aplicação encerrada.")
@@ -168,69 +177,78 @@ def main():
 # --- Função Render ---
 def render():
     """Desenha todos os elementos do jogo na tela."""
-    # Define cor de fundo e limpa buffers
+    # Define a cor de fundo (céu) e limpa os buffers
     glClearColor(0.53, 0.81, 0.92, 1.0) # Azul claro
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) # Limpa cor e profundidade
 
-    # Reseta a matriz ModelView
+    # Reseta a matriz ModelView para garantir que as transformações não se acumulem
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
     # --- Desenhar Elementos ---
-    # 1. Elementos Não Texturizados
-    glDisable(GL_TEXTURE_2D)
-    draw_ground()
-    draw_pipes()
+    # É uma boa prática habilitar/desabilitar estados OpenGL conforme necessário
 
-    # 2. Elementos Texturizados
+    # 1. Elementos Não Texturizados (ou com texturas diferentes)
+    glDisable(GL_TEXTURE_2D) # Garante que textura está desligada
+    draw_ground()    # Desenha o chão (ainda cor sólida)
+    draw_pipes()     # Desenha os canos (ainda cor sólida)
+
+    # 2. Elementos Texturizados (Pássaro e Powerups compartilham estado)
     glEnable(GL_TEXTURE_2D)
-    glColor4f(1.0, 1.0, 1.0, 1.0) # Branco, sem tingir a textura
+    glColor4f(1.0, 1.0, 1.0, 1.0) # Cor branca para não tingir a textura, Alpha 1.0
 
+    # Desenha o pássaro (usará sua própria textura internamente via glBindTexture)
     draw_bird()
+
+    # Desenha os powerups (usará sua própria textura internamente)
     draw_powerups()
 
-    glDisable(GL_TEXTURE_2D)
+    glDisable(GL_TEXTURE_2D) # Desliga textura após desenhar todos os texturizados
 
-    # 3. Interface do Usuário (Texto)
+    # 3. Interface do Usuário (Texto - não usa textura 2D padrão)
+    # Certifique-se que o texto não é afetado pela cor branca anterior se necessário
+    # draw_text já define sua própria cor (preto)
     draw_text(-0.95, 0.9, f"Score: {config.score}")
     draw_text(-0.95, 0.8, f"Lives: {config.lives}")
-
-    # Exibe status de power-up/invulnerabilidade
-    status_y = 0.7
-    if config.invulnerable:
+    
+    # Adicionar texto para exibir o recorde (em cor diferente)
+    draw_text(-0.95, 0.7, f"High Score: {config.high_score}", color=(0.7, 0.0, 0.0))  # Vermelho escuro
+    
+    if config.speed_multiplier > 1.0 and config.invulnerable:
         remaining_time = max(0, config.invulnerable_time - time.time())
-        status_text = ""
-        if config.speed_multiplier > 1.0:
-            status_text = f"SPEED BOOST: {remaining_time:.1f}s"
-        else:
-             status_text = f"INVULNERABLE: {remaining_time:.1f}s"
-        draw_text(-0.95, status_y, status_text)
+        draw_text(-0.95, 0.6, f"SPEED BOOST: {remaining_time:.1f}s")
+    elif config.invulnerable: # Invulnerabilidade normal (sem speed boost)
+         remaining_time = max(0, config.invulnerable_time - time.time())
+         draw_text(-0.95, 0.6, f"INVULNERABLE: {remaining_time:.1f}s")
 
     if config.game_over:
         draw_text(-0.4, 0.0, "GAME OVER! Press R to Restart")
     elif not config.game_started:
          draw_text(-0.5, 0.0, "Press SPACE to Start")
 
-
-    # Troca os buffers
+    # Troca os buffers (mostra o que foi desenhado)
     glfw.swap_buffers(window)
 
 # --- Callback de Redimensionamento da Janela ---
 def window_size_callback(window, width, height):
     """Chamado quando a janela é redimensionada."""
-    if height == 0: height = 1
-    glViewport(0, 0, width, height)
+    if height == 0: height = 1 # Previne divisão por zero
+    glViewport(0, 0, width, height) # Define a área de desenho para a janela inteira
 
+    # Configura a projeção ortográfica para manter o aspect ratio
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
     aspect_ratio = width / height
-    if aspect_ratio >= 1.0: # Mais larga ou quadrada
+    # Ajusta a visualização para que o eixo Y (-1 a 1) seja sempre visível
+    # e o eixo X seja ajustado baseado no aspect ratio
+    if aspect_ratio >= 1.0: # Janela mais larga ou quadrada
         glOrtho(-aspect_ratio, aspect_ratio, -1.0, 1.0, -1.0, 1.0)
-    else: # Mais alta
+    else: # Janela mais alta
         glOrtho(-1.0, 1.0, -1.0 / aspect_ratio, 1.0 / aspect_ratio, -1.0, 1.0)
 
+    # Volta para a matriz ModelView para operações de desenho
     glMatrixMode(GL_MODELVIEW)
-    glLoadIdentity()
+    glLoadIdentity() # Reseta a matriz ModelView também
 
 
 # --- Ponto de Entrada ---
