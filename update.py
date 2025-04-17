@@ -1,51 +1,49 @@
-# No update.py, adicionar importação:
-import time
+# update.py
 import config
-
-from game_pipes import update_pipes
-from collisions import check_collision
-from high_score import update_high_score
+import time
+from game_pipes import update_pipes # Atualiza canos (posição, geração, remoção) e powerups (posição, remoção)
+from collisions import check_collision # Verifica colisões
 
 def update(delta_time):
-    """Atualiza o estado do jogo a cada frame."""
+    """Atualiza o estado completo do jogo a cada frame."""
 
-    # --- Atualização da Animação do Pássaro (Sempre que houver textura) ---
-    # Fazemos isso mesmo se o jogo não começou ou acabou, para o pássaro 'respirar'
+    # --- Atualização da Animação do Pássaro ---
+    # Anima mesmo se o jogo não começou/terminou
     current_time_anim = time.time()
-    if config.bird_texture_id and config.bird_frames_uv: # Verifica se a textura e os frames existem
+    if config.bird_texture_id and config.bird_frames_uv: # Só anima se houver frames
         if current_time_anim - config.last_frame_time > config.BIRD_ANIMATION_SPEED:
+            # Avança o frame, fazendo loop
             config.bird_current_frame = (config.bird_current_frame + 1) % len(config.bird_frames_uv)
             config.last_frame_time = current_time_anim
 
-    # Só atualiza a lógica do jogo se ele estiver rodando
+    # --- Lógica Principal do Jogo (Só executa se o jogo estiver rodando) ---
     if not config.game_started or config.game_over:
-        # Se o jogo terminou, verifica se bateu o recorde
-        if config.game_over:
-            update_high_score(config.score)
-        return # Sai da função se o jogo não está ativo
+        return # Pausa a física, geração de canos, colisões etc.
 
-    # --- Lógica de Física do Pássaro ---
+    # --- Física do Pássaro ---
     config.bird_velocity += config.GRAVITY * delta_time # Aplica gravidade
     config.BIRD_Y += config.bird_velocity * delta_time # Atualiza posição Y
 
     # --- Atualização dos Canos e Power-ups ---
-    # A função update_pipes agora também é responsável por mover os powerups
-    # e verificar se novos canos/powerups devem ser gerados.
+    # update_pipes move canos H/V, gera novos, move powerups H, remove powerups coletados/fora da tela
     update_pipes(delta_time)
 
     # --- Verificação de Colisões ---
-    # Verifica colisão com chão, teto, canos e power-ups
-    check_collision()
+    # check_collision verifica pássaro vs (chão, teto, canos, powerups)
+    # e chama handle_collision ou aplica efeitos de powerup
+    check_collision() # Importante chamar DEPOIS de atualizar posições
 
-    # --- Gerenciamento de Estados (Invulnerabilidade, Speed Boost) ---
-    current_time_state = time.time() # Reobtém o tempo atual
+    # --- Gerenciamento de Estados Pós-Colisão/Powerup ---
+    current_time_state = time.time()
+    # Verifica se o tempo de invulnerabilidade/boost acabou
     if config.invulnerable and current_time_state > config.invulnerable_time:
         config.invulnerable = False
-        # Se o speed boost estava ativo (identificado pelo multiplicador), reseta-o
+        # Se o speed boost estava ativo (identificado pelo multiplicador), reseta-o também
         if config.speed_multiplier > 1.0:
             config.speed_multiplier = 1.0
             print("Speed boost acabou.") # Debug
-    
-    # Atualizar o high score em tempo real também (opcional)
-    if config.score > config.high_score:
-        update_high_score(config.score)
+        else:
+            print("Invulnerabilidade acabou.") # Debug (se não era speed boost)
+
+    # Poderia adicionar lógica de aumento de dificuldade com o tempo/score aqui
+    # Ex: aumentar PIPE_SPEED ou diminuir PIPE_SPAWN_INTERVAL gradualmente
