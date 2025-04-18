@@ -168,27 +168,23 @@ def main():
 # --- Função Render ---
 def render():
     """Desenha todos os elementos do jogo na tela."""
-    # Define cor de fundo e limpa buffers
     glClearColor(0.53, 0.81, 0.92, 1.0) # Azul claro
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-    # Reseta a matriz ModelView
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
     # --- Desenhar Elementos ---
-    # 1. Elementos Não Texturizados
+    # 1. Não Texturizados
     glDisable(GL_TEXTURE_2D)
     draw_ground()
     draw_pipes()
 
-    # 2. Elementos Texturizados
+    # 2. Texturizados
     glEnable(GL_TEXTURE_2D)
-    glColor4f(1.0, 1.0, 1.0, 1.0) # Branco, sem tingir a textura
-
+    glColor4f(1.0, 1.0, 1.0, 1.0) # Branco
     draw_bird()
     draw_powerups()
-
     glDisable(GL_TEXTURE_2D)
 
     # 3. Interface do Usuário (Texto)
@@ -196,23 +192,29 @@ def render():
     draw_text(-0.95, 0.8, f"Lives: {config.lives}")
 
     # Exibe status de power-up/invulnerabilidade
-    status_y = 0.7
+    status_y_start = 0.7
+    status_y_offset = 0.1
+    current_status_y = status_y_start
+
     if config.invulnerable:
         remaining_time = max(0, config.invulnerable_time - time.time())
-        status_text = ""
-        if config.speed_multiplier > 1.0:
+        status_text = f"INVULNERABLE: {remaining_time:.1f}s"
+        if config.speed_multiplier > 1.0: # Se invulnerabilidade veio do speed boost
             status_text = f"SPEED BOOST: {remaining_time:.1f}s"
-        else:
-             status_text = f"INVULNERABLE: {remaining_time:.1f}s"
-        draw_text(-0.95, status_y, status_text)
+        draw_text(-0.95, current_status_y, status_text)
+        current_status_y -= status_y_offset # Move para baixo para o próximo status
+
+    # --- ADICIONA STATUS DO CHAINSAW ---
+    if config.chainsaw_active:
+        draw_text(-0.95, current_status_y, f"CHAINSAW: {config.chainsaw_pipes_remaining} pipes")
+        current_status_y -= status_y_offset # Move para baixo
+    # --- FIM STATUS CHAINSAW ---
 
     if config.game_over:
         draw_text(-0.4, 0.0, "GAME OVER! Press R to Restart")
     elif not config.game_started:
          draw_text(-0.5, 0.0, "Press SPACE to Start")
 
-
-    # Troca os buffers
     glfw.swap_buffers(window)
 
 # --- Callback de Redimensionamento da Janela ---
