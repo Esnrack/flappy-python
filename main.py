@@ -166,54 +166,48 @@ def main():
     print("Aplicação encerrada.")
 
 # --- Função Render ---
+# --- Função Render ---
+# --- Função Render ---
 def render():
     """Desenha todos os elementos do jogo na tela."""
-    glClearColor(0.53, 0.81, 0.92, 1.0) # Azul claro
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glClearColor(0.53, 0.81, 0.92, 1.0); glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glMatrixMode(GL_MODELVIEW); glLoadIdentity()
 
-    glMatrixMode(GL_MODELVIEW)
-    glLoadIdentity()
+    # Desenhar Elementos...
+    glDisable(GL_TEXTURE_2D); draw_ground(); draw_pipes()
+    glEnable(GL_TEXTURE_2D); glColor4f(1.0, 1.0, 1.0, 1.0); draw_bird(); draw_powerups(); glDisable(GL_TEXTURE_2D)
 
-    # --- Desenhar Elementos ---
-    # 1. Não Texturizados
-    glDisable(GL_TEXTURE_2D)
-    draw_ground()
-    draw_pipes()
-
-    # 2. Texturizados
-    glEnable(GL_TEXTURE_2D)
-    glColor4f(1.0, 1.0, 1.0, 1.0) # Branco
-    draw_bird()
-    draw_powerups()
-    glDisable(GL_TEXTURE_2D)
-
-    # 3. Interface do Usuário (Texto)
+    # --- Interface do Usuário (Texto) ---
     draw_text(-0.95, 0.9, f"Score: {config.score}")
     draw_text(-0.95, 0.8, f"Lives: {config.lives}")
 
-    # Exibe status de power-up/invulnerabilidade
-    status_y_start = 0.7
-    status_y_offset = 0.1
-    current_status_y = status_y_start
+    # Exibe status de power-ups ativos
+    status_y_start = 0.7; status_y_offset = -0.1; current_status_y = status_y_start
+    current_time = time.time() # Get current time once for all status checks
 
     if config.invulnerable:
-        remaining_time = max(0, config.invulnerable_time - time.time())
+        remaining_time = max(0, config.invulnerable_time - current_time)
         status_text = f"INVULNERABLE: {remaining_time:.1f}s"
-        if config.speed_multiplier > 1.0: # Se invulnerabilidade veio do speed boost
-            status_text = f"SPEED BOOST: {remaining_time:.1f}s"
-        draw_text(-0.95, current_status_y, status_text)
-        current_status_y -= status_y_offset # Move para baixo para o próximo status
+        if config.speed_multiplier > 1.0: status_text = f"SPEED BOOST: {remaining_time:.1f}s"
+        draw_text(-0.95, current_status_y, status_text); current_status_y += status_y_offset
 
-    # --- ADICIONA STATUS DO CHAINSAW ---
     if config.chainsaw_active:
-        draw_text(-0.95, current_status_y, f"CHAINSAW: {config.chainsaw_pipes_remaining} pipes")
-        current_status_y -= status_y_offset # Move para baixo
-    # --- FIM STATUS CHAINSAW ---
+        draw_text(-0.95, current_status_y, f"CHAINSAW: {config.chainsaw_pipes_remaining} pipes"); current_status_y += status_y_offset
 
-    if config.game_over:
-        draw_text(-0.4, 0.0, "GAME OVER! Press R to Restart")
-    elif not config.game_started:
-         draw_text(-0.5, 0.0, "Press SPACE to Start")
+    if config.heavy_jump_active:
+        remaining_time = max(0, config.heavy_jump_end_time - current_time)
+        draw_text(-0.95, current_status_y, f"HEAVY JUMP: {remaining_time:.1f}s"); current_status_y += status_y_offset
+
+    # --- ADICIONA STATUS DO SHRINK ---
+    if config.shrink_active:
+        remaining_time = max(0, config.shrink_end_time - current_time)
+        draw_text(-0.95, current_status_y, f"SHRUNK: {remaining_time:.1f}s")
+        # current_status_y += status_y_offset # Uncomment if more statuses below
+    # --- FIM STATUS SHRINK ---
+
+    # Mensagens de Game Over / Start
+    if config.game_over: draw_text(-0.4, 0.0, "GAME OVER! Press R to Restart")
+    elif not config.game_started: draw_text(-0.5, 0.0, "Press SPACE to Start")
 
     glfw.swap_buffers(window)
 
