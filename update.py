@@ -15,19 +15,18 @@ def update(delta_time):
             config.last_frame_time = current_time_anim
 
     # --- Lógica Principal do Jogo ---
-    if not config.game_started or config.game_over:
-        return
+    if not config.game_started or config.game_over: return
 
     # --- Física do Pássaro ---
-    config.bird_velocity += config.GRAVITY * delta_time
+    current_gravity = config.GRAVITY
+    if config.heavy_jump_active: current_gravity *= config.HEAVYJUMP_GRAVITY_MULTIPLIER
+    config.bird_velocity += current_gravity * delta_time
     config.BIRD_Y += config.bird_velocity * delta_time
 
     # --- Atualização dos Canos e Power-ups ---
-    # update_pipes move canos, gera novos, move powerups, decrementa contador chainsaw e marca para desativar
     update_pipes(delta_time)
 
     # --- Verificação de Colisões ---
-    # check_collision usa o estado ATUAL de config.chainsaw_active
     check_collision()
 
     # --- Gerenciamento de Estados Pós-Colisão/Powerup/Update ---
@@ -36,34 +35,30 @@ def update(delta_time):
     # Verifica se o tempo de invulnerabilidade/boost acabou
     if config.invulnerable and current_time_state > config.invulnerable_time:
         config.invulnerable = False
-        if config.speed_multiplier > 1.0:
-            config.speed_multiplier = 1.0
+        if config.speed_multiplier > 1.0: config.speed_multiplier = 1.0
 
-    # --- VERIFICA DESATIVAÇÃO PENDENTE DO CHAINSAW ---
+    # Verifica desativação pendente do Chainsaw
     if config.chainsaw_deactivation_pending:
-        # Calcula a borda esquerda da hitbox do pássaro na posição atual
         bird_collision_half_w = (config.BIRD_DRAW_WIDTH * config.BIRD_COLLISION_SCALE_W) / 2.0
-        bird_left_edge = config.BIRD_X - bird_collision_half_w
-
+        # Aplica shrink aqui também para o cálculo da borda esquerda
+        current_size_scale = config.SHRINK_SCALE_FACTOR if config.shrink_active else 1.0
+        bird_left_edge = config.BIRD_X - (bird_collision_half_w * current_size_scale)
         last_pipe = config.chainsaw_last_pipe_ref
         pipe_cleared = False
-
-        # Verifica se a referência ao último cano ainda é válida e se ele ainda existe na lista
         if last_pipe is not None and last_pipe in config.pipes:
             pipe_right_edge = last_pipe['x'] + config.PIPE_WIDTH
-            # Verifica se a borda esquerda do pássaro passou a borda direita do cano
-            if bird_left_edge > pipe_right_edge:
-                pipe_cleared = True
-                # print("Bird cleared the last chainsaw pipe.") # Debug
-        else:
-            # Se a referência é None ou o cano não está mais na lista, considera como 'cleared'
-            pipe_cleared = True
-            # print("Chainsaw last pipe ref invalid or gone, assuming cleared.") # Debug
-
-        # Se o cano foi considerado limpo (horizontalmente ou por ter desaparecido)
+            if bird_left_edge > pipe_right_edge: pipe_cleared = True
+        else: pipe_cleared = True
         if pipe_cleared:
-            config.chainsaw_active = False
-            config.chainsaw_deactivation_pending = False
-            config.chainsaw_last_pipe_ref = None # Limpa a referência
-            print("Chainsaw effect ended (Pipe Cleared/Ref Invalid).")
-    # --- FIM VERIFICA DESATIVAÇÃO CHAINSAW ---
+            config.chainsaw_active = False; config.chainsaw_deactivation_pending = False
+            config.chainsaw_last_pipe_ref = None; print("Chainsaw effect ended (Pipe Cleared/Ref Invalid).")
+
+    # Verifica desativação do Heavy Jump
+    if config.heavy_jump_active and current_time_state > config.heavy_jump_end_time:
+        config.heavy_jump_active = False; print("Heavy Jump effect ended.")
+
+    # --- VERIFICA DESATIVAÇÃO DO SHRINK ---
+    if config.shrink_active and current_time_state > config.shrink_end_time:
+        config.shrink_active = False
+        print("Shrink effect ended.")
+    # --- FIM VERIFICA DESATIVAÇÃO SHRINK ---
