@@ -1,8 +1,9 @@
 # update.py
 import config
 import time
-from game_pipes import update_pipes
-from collisions import check_collision
+from game_pipes import update_pipes # Atualiza canos (posição, geração, remoção) e powerups (posição, remoção)
+from collisions import check_collision # Verifica colisões
+from high_score import update_high_score
 
 def update(delta_time):
     """Atualiza o estado completo do jogo a cada frame."""
@@ -14,8 +15,12 @@ def update(delta_time):
             config.bird_current_frame = (config.bird_current_frame + 1) % len(config.bird_frames_uv)
             config.last_frame_time = current_time_anim
 
-    # --- Lógica Principal do Jogo ---
-    if not config.game_started or config.game_over: return
+    # --- Lógica Principal do Jogo (Só executa se o jogo estiver rodando) ---
+    if not config.game_started or config.game_over:
+        # Se o jogo terminou, verifica se bateu o recorde
+        if config.game_over:
+            update_high_score(config.score)
+        return # Sai da função se o jogo não está ativo
 
     # --- Física do Pássaro ---
     current_gravity = config.GRAVITY
@@ -52,6 +57,10 @@ def update(delta_time):
         if pipe_cleared:
             config.chainsaw_active = False; config.chainsaw_deactivation_pending = False
             config.chainsaw_last_pipe_ref = None; print("Chainsaw effect ended (Pipe Cleared/Ref Invalid).")
+    
+    # Atualizar o high score em tempo real também (opcional)
+    if config.score > config.high_score:
+        update_high_score(config.score)
 
     # Verifica desativação do Heavy Jump
     if config.heavy_jump_active and current_time_state > config.heavy_jump_end_time:

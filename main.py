@@ -1,4 +1,4 @@
- # main.py
+# main.py
 import glfw
 from OpenGL.GL import *
 from OpenGL.GLUT import *
@@ -12,6 +12,7 @@ from powerup import draw_powerups
 from rendering import draw_ground, draw_text
 from update import update
 from input import key_callback
+from high_score import load_high_score
 
 # --- Função para Carregar Textura ---
 def load_texture(path):
@@ -50,6 +51,10 @@ def main():
     global window
     if not glfw.init(): print("Falha GLFW"); return
     glutInit()
+
+    # Carrega o recorde atual (adicionar esta linha)
+    config.high_score = load_high_score()
+    print(f"Recorde carregado: {config.high_score}")
     window = glfw.create_window(config.WINDOW_WIDTH, config.WINDOW_HEIGHT, "Flappy Bird com Sprites", None, None)
     if not window: glfw.terminate(); print("Falha janela GLFW"); return
     glfw.make_context_current(window); glfw.set_key_callback(window, key_callback); glfw.set_window_size_callback(window, window_size_callback)
@@ -140,8 +145,10 @@ def render():
     draw_bird(); draw_powerups()
     glDisable(GL_TEXTURE_2D)
 
-    # 4. UI
-    draw_text(-0.95, 0.9, f"Score: {config.score}"); draw_text(-0.95, 0.8, f"Lives: {config.lives}")
+     # 4. UI
+    draw_text(-0.95, 0.9, f"Score: {config.score}")
+    draw_text(-0.95, 0.8, f"Lives: {config.lives}")
+    draw_text(-0.95, 0.7, f"High Score: {config.high_score}")
     status_y_start = 0.7; status_y_offset = -0.1; current_status_y = status_y_start
     current_time = time.time()
     if config.invulnerable:

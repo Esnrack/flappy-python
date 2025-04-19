@@ -84,3 +84,6 @@ root_image_width = 0 # Largura px real
 root_image_height = 0 # Altura px real
 root_aspect_ratio = 1.0 # Calculado em main.py (largura_px / altura_px)
 # --- FIM Root Sprite ---
+
+high_score = 0  # Variável para armazenar o recorde atual
+HIGH_SCORE_FILE = "high_score.txt"  # Nome do arquivo onde o recorde será salvo

@@ -1,7 +1,8 @@
 # collisions.py
 import config
 import time
-from powerup import PowerUp
+from powerup import PowerUp # Para type hinting / isinstance se necessário
+from high_score import update_high_score
 
 def handle_collision():
     # (Sem alterações)
