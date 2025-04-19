@@ -1,16 +1,14 @@
 # high_score.py
-import os
 import config
 
 def load_high_score():
     """Carrega o recorde atual do arquivo. Se o arquivo não existir, retorna 0."""
     try:
-        if os.path.exists(config.HIGH_SCORE_FILE):
-            with open(config.HIGH_SCORE_FILE, 'r') as file:
-                score = int(file.read().strip())
-                return score
-        else:
-            return 0
+        with open(config.HIGH_SCORE_FILE, 'r') as file:
+            score = int(file.read().strip())
+            return score
+    except FileNotFoundError:
+        return 0
     except Exception as e:
         print(f"Erro ao carregar o recorde: {e}")
         return 0

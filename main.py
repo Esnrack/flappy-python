@@ -199,9 +199,10 @@ def render():
     # 3. Interface do Usuário (Texto)
     draw_text(-0.95, 0.9, f"Score: {config.score}")
     draw_text(-0.95, 0.8, f"Lives: {config.lives}")
+    draw_text(-0.95, 0.7, f"High Score: {config.high_score}")
 
     # Exibe status de power-up/invulnerabilidade
-    status_y = 0.7
+    status_y = 0.6
     if config.invulnerable:
         remaining_time = max(0, config.invulnerable_time - time.time())
         status_text = ""
