@@ -149,7 +149,7 @@ def render():
     draw_text(-0.95, 0.9, f"Score: {config.score}")
     draw_text(-0.95, 0.8, f"Lives: {config.lives}")
     draw_text(-0.95, 0.7, f"High Score: {config.high_score}")
-    status_y_start = 0.7; status_y_offset = -0.1; current_status_y = status_y_start
+    status_y_start = 0.6; status_y_offset = -0.1; current_status_y = status_y_start
     current_time = time.time()
     if config.invulnerable:
         remaining_time = max(0, config.invulnerable_time - current_time)
