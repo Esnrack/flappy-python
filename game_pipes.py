@@ -5,119 +5,68 @@ import random
 import time
 from powerup import PowerUp
 
-# Função draw_pipes agora aceita um flag para fallback
+# --- draw_pipes (como na versão anterior, com cálculo de repetição) ---
 def draw_pipes(use_fallback_color=False):
-    """Desenha canos com tronco repetido (escala de pixel correta) e base de raiz fixa."""
-
-    # --- Define status inicial das texturas ---
     trunk_ok = config.trunk_texture_id is not None and config.trunk_image_height > 0
     root_ok = config.root_texture_id is not None and config.root_image_height > 0
     textures_loaded_successfully = trunk_ok and root_ok
-
-    # --- Define a cor fallback se necessário ---
     if use_fallback_color or not textures_loaded_successfully:
-        glColor3f(0.0, 0.6, 0.0)
-        use_fallback_color = True
-
-    # --- Pre-calculations ---
+        glColor3f(0.0, 0.6, 0.0); use_fallback_color = True
     root_world_height = 0.0; root_world_width = 0.0
-    full_trunk_texture_world_height = 0.1 # Default small value
-
-    # Calcula altura mundial por pixel (assumindo Y de -1 a 1)
-    world_height_per_pixel = 2.0 / config.WINDOW_HEIGHT if config.WINDOW_HEIGHT > 0 else 0.01
-
-    # Calcula dimensões da raiz (se ok)
-    if root_ok:
+    if root_ok and config.WINDOW_HEIGHT > 0 :
+        world_height_per_pixel = 2.0 / config.WINDOW_HEIGHT
         root_world_height = config.ROOT_SPRITE_HEIGHT_PX * world_height_per_pixel
-        if config.root_aspect_ratio > 0:
-            root_world_width = root_world_height * config.root_aspect_ratio
+        if config.root_aspect_ratio > 0: root_world_width = root_world_height * config.root_aspect_ratio
         else: root_world_width = config.PIPE_WIDTH
         root_world_width *= config.ROOT_DRAW_WIDTH_SCALE
-
-    # Calcula altura mundial da textura do tronco INTEIRA (se ok)
-    if trunk_ok:
-        full_trunk_texture_world_height = config.trunk_image_height * world_height_per_pixel
-
-
-    # --- Define base UVs ---
     U0, V0 = 0.0, 0.0; U1, V1 = 1.0, 1.0
-
-    # --- Loop pelos canos ---
+    trunk_aspect = 1.0
+    if trunk_ok and config.trunk_image_height > 0: trunk_aspect = config.trunk_image_width / config.trunk_image_height
     for pipe in config.pipes:
-        # --- Calcula gap efetivo ---
         current_gap = config.PIPE_GAP
         is_chainsaw_effective = config.chainsaw_active or \
                                 (config.chainsaw_deactivation_pending and config.chainsaw_last_pipe_ref == pipe)
         if is_chainsaw_effective: current_gap += config.CHAINSAW_GAP_INCREASE
-        actual_top_height = pipe['bottom_height'] + current_gap
-        ground_y = -0.9
-
-        # --- Desenha Cano Superior ---
-        if not use_fallback_color: # Desenha com textura
-            glBindTexture(GL_TEXTURE_2D, config.trunk_texture_id) # Bind Trunk
-            glBegin(GL_QUADS)
+        actual_top_height = pipe['bottom_height'] + current_gap; ground_y = -0.9
+        # Desenha Cano Superior
+        if not use_fallback_color:
+            glBindTexture(GL_TEXTURE_2D, config.trunk_texture_id); glBegin(GL_QUADS)
             bottom_left_v_top = (pipe['x'], actual_top_height); bottom_right_v_top = (pipe['x'] + config.PIPE_WIDTH, actual_top_height)
             top_right_v_top = (pipe['x'] + config.PIPE_WIDTH, 1.0); top_left_v_top = (pipe['x'], 1.0)
-            # --- UVs com REPETIÇÃO CORRIGIDO (Pixel Scale) ---
-            tex_v_at_gap = V0
-            pipe_visual_height_t = 1.0 - actual_top_height
-            # Quantas vezes a ALTURA MUNDIAL da textura cabe na ALTURA VISUAL do cano
-            v_repeats_t = pipe_visual_height_t / full_trunk_texture_world_height if full_trunk_texture_world_height > 0 else 1.0
-            tex_v_at_limit = V0 + v_repeats_t * (V1 - V0) # V no topo da tela = número de repetições
-            # Aplica (V-flip)
-            glTexCoord2f(U0, tex_v_at_gap);   glVertex2f(*bottom_left_v_top)  # Gap Edge -> V0
-            glTexCoord2f(U1, tex_v_at_gap);   glVertex2f(*bottom_right_v_top)
-            glTexCoord2f(U1, tex_v_at_limit); glVertex2f(*top_right_v_top)    # Screen Edge -> V repeat
-            glTexCoord2f(U0, tex_v_at_limit); glVertex2f(*top_left_v_top)
+            tex_v_at_gap = V0; pipe_visual_height_t = 1.0 - actual_top_height
+            one_tile_world_height = config.PIPE_WIDTH / trunk_aspect if trunk_aspect > 0 else config.PIPE_WIDTH
+            v_repeats_t = pipe_visual_height_t / one_tile_world_height if one_tile_world_height > 0 else 1.0
+            tex_v_at_limit = V0 + v_repeats_t * (V1 - V0)
+            glTexCoord2f(U0, tex_v_at_gap);   glVertex2f(*bottom_left_v_top); glTexCoord2f(U1, tex_v_at_gap);   glVertex2f(*bottom_right_v_top)
+            glTexCoord2f(U1, tex_v_at_limit); glVertex2f(*top_right_v_top);    glTexCoord2f(U0, tex_v_at_limit); glVertex2f(*top_left_v_top)
             glEnd()
-        else: # Desenho Fallback Superior
-            glBegin(GL_QUADS); glVertex2f(pipe['x'], actual_top_height); glVertex2f(pipe['x'] + config.PIPE_WIDTH, actual_top_height)
-            glVertex2f(pipe['x'] + config.PIPE_WIDTH, 1.0); glVertex2f(pipe['x'], 1.0); glEnd()
-
-        # --- Desenha Cano Inferior (Tronco) ---
-        if not use_fallback_color: # Desenha com textura
-            glBindTexture(GL_TEXTURE_2D, config.trunk_texture_id) # Garante bind
-            glBegin(GL_QUADS)
+        else: glBegin(GL_QUADS); glVertex2f(pipe['x'], actual_top_height); glVertex2f(pipe['x'] + config.PIPE_WIDTH, actual_top_height); glVertex2f(pipe['x'] + config.PIPE_WIDTH, 1.0); glVertex2f(pipe['x'], 1.0); glEnd()
+        # Desenha Cano Inferior (Tronco)
+        if not use_fallback_color:
+            glBindTexture(GL_TEXTURE_2D, config.trunk_texture_id); glBegin(GL_QUADS)
             bottom_left_v_trunk = (pipe['x'], ground_y); bottom_right_v_trunk = (pipe['x'] + config.PIPE_WIDTH, ground_y)
             top_right_v_trunk = (pipe['x'] + config.PIPE_WIDTH, pipe['bottom_height']); top_left_v_trunk = (pipe['x'], pipe['bottom_height'])
-            # --- UVs com REPETIÇÃO CORRIGIDO (Pixel Scale) ---
-            tex_v_at_gap = V0 # Base da textura (V=0) no topo do cano inferior
-            pipe_visual_height_b = pipe['bottom_height'] - ground_y
-             # Quantas vezes a ALTURA MUNDIAL da textura cabe na ALTURA VISUAL do cano
-            v_repeats_b = pipe_visual_height_b / full_trunk_texture_world_height if full_trunk_texture_world_height > 0 else 1.0
-            tex_v_at_limit = V0 + v_repeats_b * (V1 - V0) # V no nível do chão = número de repetições
-            # Aplica (V-flip)
-            glTexCoord2f(U0, tex_v_at_limit); glVertex2f(*bottom_left_v_trunk) # Ground -> V repeat
-            glTexCoord2f(U1, tex_v_at_limit); glVertex2f(*bottom_right_v_trunk)
-            glTexCoord2f(U1, tex_v_at_gap);   glVertex2f(*top_right_v_trunk)    # Top Pipe -> V0
-            glTexCoord2f(U0, tex_v_at_gap);   glVertex2f(*top_left_v_trunk)
+            tex_v_at_gap = V0; pipe_visual_height_b = pipe['bottom_height'] - ground_y
+            one_tile_world_height = config.PIPE_WIDTH / trunk_aspect if trunk_aspect > 0 else config.PIPE_WIDTH
+            v_repeats_b = pipe_visual_height_b / one_tile_world_height if one_tile_world_height > 0 else 1.0
+            tex_v_at_limit = V0 + v_repeats_b * (V1 - V0)
+            glTexCoord2f(U0, tex_v_at_limit); glVertex2f(*bottom_left_v_trunk); glTexCoord2f(U1, tex_v_at_limit); glVertex2f(*bottom_right_v_trunk)
+            glTexCoord2f(U1, tex_v_at_gap);   glVertex2f(*top_right_v_trunk);    glTexCoord2f(U0, tex_v_at_gap);   glVertex2f(*top_left_v_trunk)
             glEnd()
-        else: # Fallback Inferior (Tronco)
-            glBegin(GL_QUADS); glVertex2f(pipe['x'], ground_y); glVertex2f(pipe['x'] + config.PIPE_WIDTH, ground_y)
-            glVertex2f(pipe['x'] + config.PIPE_WIDTH, pipe['bottom_height']); glVertex2f(pipe['x'], pipe['bottom_height']); glEnd()
-
-        # --- Desenha Base com Raízes ---
-        # Só desenha se não for fallback E a textura da raiz especificamente estiver OK
+        else: glBegin(GL_QUADS); glVertex2f(pipe['x'], ground_y); glVertex2f(pipe['x'] + config.PIPE_WIDTH, ground_y); glVertex2f(pipe['x'] + config.PIPE_WIDTH, pipe['bottom_height']); glVertex2f(pipe['x'], pipe['bottom_height']); glEnd()
+        # Desenha Base com Raízes
         if not use_fallback_color and root_ok:
-            glBindTexture(GL_TEXTURE_2D, config.root_texture_id) # <<< Bind Root
-            glBegin(GL_QUADS)
+            glBindTexture(GL_TEXTURE_2D, config.root_texture_id); glBegin(GL_QUADS)
             center_x = pipe['x'] + config.PIPE_WIDTH / 2.0; half_root_w = root_world_width / 2.0
             x_left_root = center_x - half_root_w; x_right_root = center_x + half_root_w
             y_bottom_root = ground_y; y_top_root = ground_y + root_world_height
-            glTexCoord2f(U0, V1); glVertex2f(x_left_root, y_bottom_root)
-            glTexCoord2f(U1, V1); glVertex2f(x_right_root, y_bottom_root)
-            glTexCoord2f(U1, V0); glVertex2f(x_right_root, y_top_root)
-            glTexCoord2f(U0, V0); glVertex2f(x_left_root, y_top_root)
+            glTexCoord2f(U0, V1); glVertex2f(x_left_root, y_bottom_root); glTexCoord2f(U1, V1); glVertex2f(x_right_root, y_bottom_root)
+            glTexCoord2f(U1, V0); glVertex2f(x_right_root, y_top_root);    glTexCoord2f(U0, V0); glVertex2f(x_left_root, y_top_root)
             glEnd()
+    if not use_fallback_color and textures_loaded_successfully: glBindTexture(GL_TEXTURE_2D, 0)
+    elif use_fallback_color: glColor3f(1.0, 1.0, 1.0)
 
-    # --- Fim do loop de canos ---
-    # Desvincula textura se texturas foram usadas
-    if not use_fallback_color and textures_loaded_successfully:
-        glBindTexture(GL_TEXTURE_2D, 0)
-    elif use_fallback_color: # Reseta cor se fallback foi usado
-         glColor3f(1.0, 1.0, 1.0)
-
-# --- update_pipes (sem alterações) ---
+# --- update_pipes ---
 def update_pipes(delta_time):
     min_safe_bottom_limit = -1.0 + 0.1; max_safe_top_limit = 1.0 - 0.1
     max_safe_bottom_limit_for_bottom = max_safe_top_limit - config.PIPE_GAP
@@ -169,8 +118,11 @@ def update_pipes(delta_time):
     if pipe_generated_this_frame and len(config.pipes) >= 2: # Gera Powerup
         previous_pipe = config.pipes[-2]; newly_created_pipe = config.pipes[-1]
         if random.random() < 0.10:
-            if config.POWERUP_TYPES:
-                powerup_type = random.choice(config.POWERUP_TYPES)
+            # --- Seleciona tipo de powerup da nova config ---
+            available_pu_types = list(config.powerup_data.keys()) # Obtem tipos carregados
+            if available_pu_types:
+                powerup_type = random.choice(available_pu_types)
+            # --- Fim Seleção ---
                 prev_right_edge = previous_pipe['x'] + config.PIPE_WIDTH; new_left_edge = newly_created_pipe['x']
                 powerup_x = (prev_right_edge + new_left_edge) / 2.0
                 prev_gap_center_y = (previous_pipe['bottom_height'] + previous_pipe['top_height']) / 2.0
