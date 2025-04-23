@@ -14,10 +14,14 @@ def draw_background(x_min, x_max, y_min, y_max):
 
     glBegin(GL_QUADS)
     # Mapeamento UV com V invertido
-    glTexCoord2f(U0, V1); glVertex2f(x_min, y_min) # Bottom-Left Vert -> Top-Left Tex UV (V=1)
-    glTexCoord2f(U1, V1); glVertex2f(x_max, y_min) # Bottom-Right Vert -> Top-Right Tex UV (V=1)
-    glTexCoord2f(U1, V0); glVertex2f(x_max, y_max) # Top-Right Vert -> Bottom-Right Tex UV (V=0)
-    glTexCoord2f(U0, V0); glVertex2f(x_min, y_max) # Top-Left Vert -> Bottom-Left Tex UV (V=0)
+    glTexCoord2f(U0, V1)
+    glVertex2f(x_min, y_min) # Bottom-Left Vert -> Top-Left Tex UV (V=1)
+    glTexCoord2f(U1, V1)
+    glVertex2f(x_max, y_min) # Bottom-Right Vert -> Top-Right Tex UV (V=1)
+    glTexCoord2f(U1, V0)
+    glVertex2f(x_max, y_max) # Top-Right Vert -> Bottom-Right Tex UV (V=0)
+    glTexCoord2f(U0, V0)
+    glVertex2f(x_min, y_max) # Top-Left Vert -> Bottom-Left Tex UV (V=0)
     glEnd()
 # --- FIM draw_background ---
 
@@ -42,10 +46,13 @@ def draw_ground(world_x_min=-1.5, world_x_max=1.5, use_fallback_color=False):
     if use_fallback_color or not config.ground_texture_id:
         glColor3f(0.6, 0.3, 0.1) # Marrom
         glBegin(GL_QUADS)
-        glVertex2f(x_min, y_max); glVertex2f(x_max, y_max)
-        glVertex2f(x_max, y_min); glVertex2f(x_min, y_min)
+        glVertex2f(x_min, y_max)
+        glVertex2f(x_max, y_max)
+        glVertex2f(x_max, y_min)
+        glVertex2f(x_min, y_min)
         glEnd()
-        if not use_fallback_color: glColor3f(1.0, 1.0, 1.0)
+        if not use_fallback_color:
+            glColor3f(1.0, 1.0, 1.0)
     else:
         quad_width = x_max - x_min
         tile_world_width = config.GROUND_TILE_WORLD_WIDTH
@@ -55,13 +62,18 @@ def draw_ground(world_x_min=-1.5, world_x_max=1.5, use_fallback_color=False):
         vertical_repeats = quad_height / tile_world_height if tile_world_height > 0 else 1.0
         U0_offset = config.ground_offset_x
         U_REPEAT_offset = config.ground_offset_x + horizontal_repeats
-        V0_base = 0.0; V_REPEAT = vertical_repeats
+        V0_base = 0.0
+        V_REPEAT = vertical_repeats
 
         glBegin(GL_QUADS)
-        glTexCoord2f(U0_offset,       V0_base);   glVertex2f(x_min, y_max)
-        glTexCoord2f(U_REPEAT_offset, V0_base);   glVertex2f(x_max, y_max)
-        glTexCoord2f(U_REPEAT_offset, V_REPEAT);  glVertex2f(x_max, y_min)
-        glTexCoord2f(U0_offset,       V_REPEAT);  glVertex2f(x_min, y_min)
+        glTexCoord2f(U0_offset, V0_base)
+        glVertex2f(x_min, y_max)
+        glTexCoord2f(U_REPEAT_offset, V0_base)
+        glVertex2f(x_max, y_max)
+        glTexCoord2f(U_REPEAT_offset, V_REPEAT)
+        glVertex2f(x_max, y_min)
+        glTexCoord2f(U0_offset, V_REPEAT)
+        glVertex2f(x_min, y_min)
         glEnd()
 
 # --- draw_text ---

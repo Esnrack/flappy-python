@@ -7,11 +7,13 @@ import config # Importa as configurações globais
 def draw_bird():
     """Desenha o pássaro na tela usando sua sprite sheet e animação."""
 
-    if config.invulnerable and int(time.time() * 10) % 2 == 0: return # Pisca se invulnerável
+    if config.invulnerable and int(time.time() * 10) % 2 == 0:
+        return # Pisca se invulnerável
 
     if not config.bird_texture_id or not config.bird_frames_uv:
         # Fallback: Desenhar um quadrado amarelo
-        glColor3f(1.0, 1.0, 0.0); glDisable(GL_TEXTURE_2D)
+        glColor3f(1.0, 1.0, 0.0)
+        glDisable(GL_TEXTURE_2D)
         glBegin(GL_QUADS)
         half_w_fb = (config.BIRD_DRAW_WIDTH * config.BIRD_COLLISION_SCALE_W) / 2.0
         half_h_fb = (config.BIRD_DRAW_HEIGHT * config.BIRD_COLLISION_SCALE_H) / 2.0
@@ -19,7 +21,8 @@ def draw_bird():
         glVertex2f(config.BIRD_X + half_w_fb, config.BIRD_Y - half_h_fb)
         glVertex2f(config.BIRD_X + half_w_fb, config.BIRD_Y + half_h_fb)
         glVertex2f(config.BIRD_X - half_w_fb, config.BIRD_Y + half_h_fb)
-        glEnd(); return
+        glEnd()
+        return
 
     # --- Desenho com Textura ---
     current_frame_index = config.bird_current_frame % len(config.bird_frames_uv)
@@ -43,11 +46,15 @@ def draw_bird():
     # !! CORREÇÃO AQUI: Inverter u0 e u1 para flip horizontal !!
     glBegin(GL_QUADS)
     # Vértice Inferior Esquerdo (x0, y0) usa UV Superior DIREITO (u1, v1)
-    glTexCoord2f(u1, v1); glVertex2f(x0, y0)
+    glTexCoord2f(u1, v1)
+    glVertex2f(x0, y0)
     # Vértice Inferior Direito (x1, y0) usa UV Superior ESQUERDO (u0, v1)
-    glTexCoord2f(u0, v1); glVertex2f(x1, y0)
+    glTexCoord2f(u0, v1)
+    glVertex2f(x1, y0)
     # Vértice Superior Direito (x1, y1) usa UV Inferior ESQUERDO (u0, v0)
-    glTexCoord2f(u0, v0); glVertex2f(x1, y1)
+    glTexCoord2f(u0, v0)
+    glVertex2f(x1, y1)
     # Vértice Superior Esquerdo (x0, y1) usa UV Inferior DIREITO (u1, v0)
-    glTexCoord2f(u1, v0); glVertex2f(x0, y1)
+    glTexCoord2f(u1, v0)
+    glVertex2f(x0, y1)
     glEnd()

@@ -13,7 +13,7 @@ PIPE_SPAWN_INTERVAL = 1.4
 
 # Limita a mudança vertical
 MAX_PIPE_HEIGHT_CHANGE = 0.4
-MAX_PIPE_HEIGHT_CHANGE_AFTER_MOVING = 0.5
+MAX_PIPE_HEIGHT_CHANGE_AFTER_MOVING = 0.4
 
 # Configurações para movimento vertical dos canos
 PIPE_MOVE_CHANCE = 0.35
@@ -22,11 +22,13 @@ MAX_PIPE_MOVE_SPEED = 0.30
 
 # --- Configurações para Sprites ---
 BIRD_SPRITE_PATH = "sprites/bird_sheet.png"
-BIRD_COLS = 12; BIRD_ROWS = 1; BIRD_ANIMATION_SPEED = 0.1
+BIRD_COLS = 24
+BIRD_ROWS = 1
+BIRD_ANIMATION_SPEED = 0.1
 
 POWERUP_SPRITE_PATH = "sprites/powerups.png"
-POWERUP_COLS = 5; POWERUP_ROWS = 1
-POWERUP_TYPES = ['life', 'speed', 'chainsaw', 'heavy_jump', 'shrink']
+POWERUP_COLS = 5
+POWERUP_ROWS = 1
 
 TRUNK_SPRITE_PATH = "sprites/tree_trunk.png"
 
@@ -77,20 +79,34 @@ POWERUP_COLLISION_SIZE = 0.04
 
 # Configurações para Powerups Específicos
 POWERUP_Y_RANGE_AROUND_PATH = 0.5
-CHAINSAW_GAP_INCREASE = 0.2; CHAINSAW_DURATION_PIPES = 3
-HEAVYJUMP_GRAVITY_MULTIPLIER = 1.8; HEAVYJUMP_JUMP_MULTIPLIER = 1.6; HEAVYJUMP_DURATION_SECONDS = 6.0
-SHRINK_SCALE_FACTOR = 0.6; SHRINK_DURATION_SECONDS = 7.0
+CHAINSAW_GAP_INCREASE = 0.2
+CHAINSAW_DURATION_PIPES = 3
+HEAVYJUMP_GRAVITY_MULTIPLIER = 1.8
+HEAVYJUMP_JUMP_MULTIPLIER = 1.6
+HEAVYJUMP_DURATION_SECONDS = 6.0
+SHRINK_SCALE_FACTOR = 0.6
+SHRINK_DURATION_SECONDS = 7.0
 
 # Variáveis Globais de Jogo
-bird_velocity = 0.0; game_started = False; game_over = False
-lives = INITIAL_LIVES; score = 0; last_pipe_time = 0.0
+bird_velocity = 0.0
+game_started = False
+game_over = False
+lives = INITIAL_LIVES
+score = 0
+last_pipe_time = 0.0
 pipes = [] # Dicionário NÃO terá tree_frame_index
-powerups = []; speed_multiplier = 1.0
-invulnerable = False; invulnerable_time = 0.0
-chainsaw_active = False; chainsaw_pipes_remaining = 0
-chainsaw_deactivation_pending = False; chainsaw_last_pipe_ref = None
-heavy_jump_active = False; heavy_jump_end_time = 0.0
-shrink_active = False; shrink_end_time = 0.0
+powerups = []
+speed_multiplier = 1.0
+invulnerable = False
+invulnerable_time = 0.0
+chainsaw_active = False
+chainsaw_pipes_remaining = 0
+chainsaw_deactivation_pending = False
+chainsaw_last_pipe_ref = None
+heavy_jump_active = False
+heavy_jump_end_time = 0.0
+shrink_active = False
+shrink_end_time = 0.0
 ground_offset_x = 0.0
 
 # Variáveis Globais das Nuvens
@@ -102,20 +118,31 @@ pause_start_time = 0.0 # Momento em que o jogo foi pausado
 total_pause_time = 0.0 # Tempo acumulado em pausa
 
 # Posição inicial do pássaro
-BIRD_X = -0.5; BIRD_Y = 0.0
+BIRD_X = -0.5
+BIRD_Y = 0.0
 
 # High Score
 high_score = 0
 HIGH_SCORE_FILE = "high_score.txt"
 
 # Variáveis Globais para Sprites
-bird_texture_id = None; bird_frames_uv = []; bird_frame_aspect = 1.0
-bird_current_frame = 0; last_frame_time = 0.0
+bird_texture_id = None
+bird_frames_uv = []
+bird_frame_aspect = 1.0
+bird_current_frame = 0
+last_frame_time = 0.0
 
 powerup_data = {}
 
-trunk_texture_id = None; trunk_image_width = 0; trunk_image_height = 0
-root_texture_id = None; root_image_width = 0; root_image_height = 0; root_aspect_ratio = 1.0
-ground_texture_id = None; ground_image_width = 0; ground_image_height = 0
+trunk_texture_id = None
+trunk_image_width = 0
+trunk_image_height = 0
+root_texture_id = None
+root_image_width = 0
+root_image_height = 0
+root_aspect_ratio = 1.0
+ground_texture_id = None
+ground_image_width = 0
+ground_image_height = 0
 
 cloud_data = {}
