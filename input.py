@@ -2,7 +2,7 @@
 import glfw
 import time
 import config
-
+ 
 def key_callback(window, key, scancode, action, mods):
     """Processa eventos de teclado."""
     if action == glfw.PRESS:
