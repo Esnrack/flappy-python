@@ -67,7 +67,7 @@ def check_collision():
                 powerup.collected = True
                 # --- Aplica Efeitos ---
                 if powerup.type == 'life':
-                    config.lives = min(config.lives + 1, config.INITIAL_LIVES * 2)
+                    config.lives = min(config.lives + 1, config.INITIAL_LIVES)
                     print(f"Ganhou vida! Vidas: {config.lives}")
                 elif powerup.type == 'speed':
                     config.speed_multiplier = 2.0
