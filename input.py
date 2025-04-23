@@ -2,12 +2,44 @@
 import glfw
 import time
 import config
- 
+
 def key_callback(window, key, scancode, action, mods):
     """Processa eventos de teclado."""
     if action == glfw.PRESS:
+        # Tecla ESC (Pause)
+        if key == glfw.KEY_ESCAPE:
+            if config.game_started and not config.game_over:
+                if not config.game_paused:  # Jogo será pausado
+                    config.game_paused = True
+                    config.pause_start_time = time.time()
+                    print("Jogo pausado!")
+                # No arquivo input.py, na parte de despausar o jogo
+                else:  # Jogo será despausado
+                    config.game_paused = False
+                    pause_duration = time.time() - config.pause_start_time
+                    config.total_pause_time += pause_duration
+                    # Ajustar o tempo do último cano para manter o intervalo consistente
+                    config.last_pipe_time += pause_duration
+                    
+                    # Ajusta o tempo de invulnerabilidade
+                    if config.invulnerable:
+                        config.invulnerable_time += pause_duration
+                        
+                    # Ajustar qualquer outro temporizador ativo
+                    if config.heavy_jump_active:
+                        config.heavy_jump_end_time += pause_duration
+                        
+                    if config.shrink_active:
+                        config.shrink_end_time += pause_duration
+                        
+                    print(f"Jogo continuado! (Pausado por {pause_duration:.1f}s)")
+
         # Tecla ESPAÇO
         if key == glfw.KEY_SPACE:
+            # Ignora comandos de espaço quando o jogo está pausado
+            if config.game_paused:
+                return
+                
             if not config.game_started:
                 print("Jogo Iniciado!")
                 config.game_started = True; config.last_pipe_time = time.time()

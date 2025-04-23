@@ -2,6 +2,7 @@
 import config
 import time
 from powerup import PowerUp # Para type hinting / isinstance se necessário
+from high_score import update_high_score
 
 def handle_collision():
     # (Sem alterações)
@@ -10,14 +11,11 @@ def handle_collision():
     config.lives -= 1
     print(f"Vidas restantes: {config.lives}")
     if config.lives <= 0:
-        config.game_over = True
-        config.bird_velocity = 0
-        print("Game Over!")
+        config.game_over = True; config.bird_velocity = 0; print("Game Over!")
     else:
-        config.bird_velocity = 0.0
-        config.invulnerable = True
+        config.bird_velocity = 0.0; config.invulnerable = True
         invulnerability_duration = 2.0
-        config.invulnerable_time = time.time() + invulnerability_duration
+        config.invulnerable_time = config.get_game_time() + invulnerability_duration
         print(f"Perdeu uma vida! Invulnerável por {invulnerability_duration}s.")
 
 def check_collision():
@@ -45,20 +43,17 @@ def check_collision():
     # 1. Colisão com Chão e Teto
     if bird_bottom_edge <= -0.9:
         if not config.invulnerable: handle_collision()
-        if not config.game_over: config.BIRD_Y = -0.9 + bird_collision_half_h
-        config.bird_velocity = 0
+        if not config.game_over: config.BIRD_Y = -0.9 + bird_collision_half_h; config.bird_velocity = 0
         return
     if bird_top_edge >= 1.0:
         if not config.invulnerable: handle_collision()
-        if not config.game_over: config.BIRD_Y = 1.0 - bird_collision_half_h
-        config.bird_velocity = min(0, config.bird_velocity)
+        if not config.game_over: config.BIRD_Y = 1.0 - bird_collision_half_h; config.bird_velocity = min(0, config.bird_velocity)
         return
 
     # 2. Colisão com Power-ups (Círculo vs AABB)
     for powerup in config.powerups:
         if not powerup.collected:
-            px, py = powerup.x, powerup.y
-            pr = powerup.collision_size
+            px, py = powerup.x, powerup.y; pr = powerup.collision_size
             closest_x = max(bird_left_edge, min(px, bird_right_edge))
             closest_y = max(bird_bottom_edge, min(py, bird_top_edge))
             dist_sq = (px - closest_x)**2 + (py - closest_y)**2
@@ -70,34 +65,30 @@ def check_collision():
                     config.lives = min(config.lives + 1, config.INITIAL_LIVES * 2)
                     print(f"Ganhou vida! Vidas: {config.lives}")
                 elif powerup.type == 'speed':
-                    config.speed_multiplier = 2.0
-                    config.invulnerable = True
+                    config.speed_multiplier = 2.0; config.invulnerable = True
                     boost_duration = 5.0
-                    config.invulnerable_time = max(config.invulnerable_time, time.time() + boost_duration)
+                    config.invulnerable_time = config.get_game_time() + boost_duration
                     print(f"Speed Boost ativado por {boost_duration}s!")
                 elif powerup.type == 'chainsaw':
                     if config.chainsaw_deactivation_pending:
-                        config.chainsaw_deactivation_pending = False
-                        config.chainsaw_last_pipe_ref = None
-                    config.chainsaw_active = True
-                    config.chainsaw_pipes_remaining = config.CHAINSAW_DURATION_PIPES
+                        config.chainsaw_deactivation_pending = False; config.chainsaw_last_pipe_ref = None
+                    config.chainsaw_active = True; config.chainsaw_pipes_remaining = config.CHAINSAW_DURATION_PIPES
                     print(f"Chainsaw ativado! Gap aumentado por {config.chainsaw_pipes_remaining} canos.")
                 elif powerup.type == 'heavy_jump':
                     config.heavy_jump_active = True
-                    config.heavy_jump_end_time = time.time() + config.HEAVYJUMP_DURATION_SECONDS
+                    config.heavy_jump_end_time = config.get_game_time() + config.HEAVYJUMP_DURATION_SECONDS
                     print(f"Heavy Jump ativado por {config.HEAVYJUMP_DURATION_SECONDS:.1f} segundos!")
                 # --- ADICIONA LÓGICA PARA SHRINK ---
                 elif powerup.type == 'shrink':
                     config.shrink_active = True
-                    config.shrink_end_time = time.time() + config.SHRINK_DURATION_SECONDS
+                    config.shrink_end_time = config.get_game_time() + config.SHRINK_DURATION_SECONDS
                     print(f"Shrink ativado por {config.SHRINK_DURATION_SECONDS:.1f} segundos!")
                 # --- FIM LÓGICA SHRINK ---
 
     # 3. Colisão com Canos (AABB vs Abertura)
     if config.invulnerable: return
     for pipe in config.pipes:
-        pipe_left_edge = pipe['x']
-        pipe_right_edge = pipe['x'] + config.PIPE_WIDTH
+        pipe_left_edge = pipe['x']; pipe_right_edge = pipe['x'] + config.PIPE_WIDTH
         horizontal_overlap = bird_right_edge > pipe_left_edge and bird_left_edge < pipe_right_edge
         if horizontal_overlap:
             current_gap = config.PIPE_GAP
