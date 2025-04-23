@@ -2,7 +2,8 @@
 import time
 
 # Configurações iniciais da janela e jogo
-WINDOW_WIDTH, WINDOW_HEIGHT = 800, 600
+WINDOW_WIDTH = 800
+WINDOW_HEIGHT = 600
 GRAVITY = -0.9
 JUMP_STRENGTH = 0.5
 PIPE_WIDTH = 0.15
@@ -10,12 +11,8 @@ PIPE_GAP = 0.4
 PIPE_SPEED = 0.5 # Velocidade horizontal principal (canos, chão)
 INITIAL_LIVES = 3
 PIPE_SPAWN_INTERVAL = 1.4
-
-# Limita a mudança vertical
 MAX_PIPE_HEIGHT_CHANGE = 0.4
 MAX_PIPE_HEIGHT_CHANGE_AFTER_MOVING = 0.4
-
-# Configurações para movimento vertical dos canos
 PIPE_MOVE_CHANCE = 0.35
 MIN_PIPE_MOVE_SPEED = 0.15
 MAX_PIPE_MOVE_SPEED = 0.30
@@ -25,10 +22,6 @@ BIRD_SPRITE_PATH = "sprites/bird_sheet.png"
 BIRD_COLS = 24
 BIRD_ROWS = 1
 BIRD_ANIMATION_SPEED = 0.1
-
-POWERUP_SPRITE_PATH = "sprites/powerups.png"
-POWERUP_COLS = 5
-POWERUP_ROWS = 1
 
 TRUNK_SPRITE_PATH = "sprites/tree_trunk.png"
 
@@ -53,9 +46,7 @@ CLOUD_Y_MAX = 0.8
 CLOUD_SCALE_MIN = 0.8
 CLOUD_SCALE_MAX = 1.3
 CLOUD_BASE_DRAW_WIDTH = 0.2
-# --- VELOCIDADE DE ANIMAÇÃO DA NUVEM AJUSTADA ---
-CLOUD_ANIMATION_SPEED = 0.5 # Segundos por frame (era 0.2, mais lento agora)
-# --- FIM AJUSTE ---
+CLOUD_ANIMATION_SPEED = 0.5 # Segundos por frame
 
 # Configuração INDIVIDUAL dos Power-ups
 POWERUP_CONFIG = [
@@ -77,7 +68,7 @@ BIRD_COLLISION_SCALE_W = 0.65
 BIRD_COLLISION_SCALE_H = 0.65
 POWERUP_COLLISION_SIZE = 0.04
 
-# Configurações para Powerups Específicos
+# Configurações para Powerups Específicos (Efeitos)
 POWERUP_Y_RANGE_AROUND_PATH = 0.5
 CHAINSAW_GAP_INCREASE = 0.2
 CHAINSAW_DURATION_PIPES = 3
@@ -94,7 +85,7 @@ game_over = False
 lives = INITIAL_LIVES
 score = 0
 last_pipe_time = 0.0
-pipes = [] # Dicionário NÃO terá tree_frame_index
+pipes = []
 powerups = []
 speed_multiplier = 1.0
 invulnerable = False
@@ -109,13 +100,12 @@ shrink_active = False
 shrink_end_time = 0.0
 ground_offset_x = 0.0
 
-# Variáveis Globais das Nuvens
-clouds = []
-last_cloud_spawn_time = 0.0
-next_cloud_spawn_interval = 0.0
-game_paused = False #  Controla se o jogo está pausado
+# --- Variáveis de Pausa ---
+game_paused = False # Controla se o jogo está pausado
 pause_start_time = 0.0 # Momento em que o jogo foi pausado
-total_pause_time = 0.0 # Tempo acumulado em pausa
+total_pause_duration = 0.0 # Tempo acumulado em pausa (RENOMEADO de total_pause_time)
+# --- FIM Pausa ---
+
 
 # Posição inicial do pássaro
 BIRD_X = -0.5
@@ -125,24 +115,21 @@ BIRD_Y = 0.0
 high_score = 0
 HIGH_SCORE_FILE = "high_score.txt"
 
-# Variáveis Globais para Sprites
-bird_texture_id = None
-bird_frames_uv = []
-bird_frame_aspect = 1.0
-bird_current_frame = 0
-last_frame_time = 0.0
+# --- Variáveis Globais para Sprites ---
+bird_texture_id = None; bird_frames_uv = []; bird_frame_aspect = 1.0
+bird_current_frame = 0; last_frame_time = 0.0
 
 powerup_data = {}
 
-trunk_texture_id = None
-trunk_image_width = 0
-trunk_image_height = 0
-root_texture_id = None
-root_image_width = 0
-root_image_height = 0
-root_aspect_ratio = 1.0
-ground_texture_id = None
-ground_image_width = 0
-ground_image_height = 0
+trunk_texture_id = None; trunk_image_width = 0; trunk_image_height = 0
+root_texture_id = None; root_image_width = 0; root_image_height = 0; root_aspect_ratio = 1.0
+ground_texture_id = None; ground_image_width = 0; ground_image_height = 0
 
 cloud_data = {}
+clouds = []; last_cloud_spawn_time = 0.0; next_cloud_spawn_interval = 0.0
+
+# --- Variáveis Globais para limites do Ortho ---
+world_x_min = -1.0 * (WINDOW_WIDTH / WINDOW_HEIGHT) if WINDOW_WIDTH >= WINDOW_HEIGHT else -1.0
+world_x_max = 1.0 * (WINDOW_WIDTH / WINDOW_HEIGHT) if WINDOW_WIDTH >= WINDOW_HEIGHT else 1.0
+world_y_min = -1.0 if WINDOW_WIDTH >= WINDOW_HEIGHT else -1.0 / (WINDOW_WIDTH / WINDOW_HEIGHT)
+world_y_max = 1.0 if WINDOW_WIDTH >= WINDOW_HEIGHT else 1.0 / (WINDOW_WIDTH / WINDOW_HEIGHT)
