@@ -1,8 +1,6 @@
-# high_score.py
 import config
 
 def load_high_score():
-    """Carrega o recorde atual do arquivo. Se o arquivo não existir, retorna 0."""
     try:
         with open(config.HIGH_SCORE_FILE, 'r') as file:
             score = int(file.read().strip())
@@ -14,7 +12,6 @@ def load_high_score():
         return 0
 
 def save_high_score(score):
-    """Salva o novo recorde no arquivo."""
     try:
         with open(config.HIGH_SCORE_FILE, 'w') as file:
             file.write(str(score))
@@ -23,7 +20,6 @@ def save_high_score(score):
         print(f"Erro ao salvar o recorde: {e}")
 
 def update_high_score(current_score):
-    """Verifica se o score atual é maior que o recorde e atualiza se necessário."""
     if current_score > config.high_score:
         config.high_score = current_score
         save_high_score(current_score)

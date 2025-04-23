@@ -1,4 +1,3 @@
-# main.py
 import glfw
 from OpenGL.GL import *
 from OpenGL.GLUT import *
@@ -7,17 +6,16 @@ import time
 import numpy as np
 import random
 import pause 
-import config # Importa config primeiro
+import config
 from player import draw_bird
 from game_pipes import draw_pipes
 from powerup import draw_powerups
-from rendering import draw_ground, draw_text, draw_background, draw_clouds
-from update import update # update importa config
+from rendering import draw_ground, draw_text, draw_clouds
+from update import update
 from input import key_callback
 from high_score import load_high_score
 from clouds import Cloud
 
-# --- Função para Carregar Textura ---
 def load_texture(path):
     try:
         img = Image.open(path).convert("RGBA")
@@ -39,7 +37,6 @@ def load_texture(path):
         print(f"Erro ao carregar textura {path}: {e}")
         return None, 0, 0
 
-# --- Função para Calcular Coordenadas UV dos Frames ---
 def calculate_sprite_uvs(sheet_width, sheet_height, cols, rows):
     uvs = []
     aspect_ratio = 1.0
@@ -59,7 +56,6 @@ def calculate_sprite_uvs(sheet_width, sheet_height, cols, rows):
     return uvs, aspect_ratio
 
 window = None
-# --- REMOVIDO Variáveis Globais Ortho daqui ---
 
 def main():
     global window
@@ -68,7 +64,6 @@ def main():
         return
     glutInit()
 
-    # Carrega o recorde atual (adicionar esta linha)
     config.high_score = load_high_score()
     print(f"Recorde carregado: {config.high_score}")
     window = glfw.create_window(config.WINDOW_WIDTH, config.WINDOW_HEIGHT, "Flappy Bird com Sprites", None, None)
@@ -85,7 +80,7 @@ def main():
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     print("Carregando texturas...")
-    # Pássaro
+
     config.bird_texture_id, sheet_w, sheet_h = load_texture(config.BIRD_SPRITE_PATH)
     if config.bird_texture_id and sheet_w > 0 and sheet_h > 0:
         config.bird_frames_uv, config.bird_frame_aspect = calculate_sprite_uvs(sheet_w, sheet_h, config.BIRD_COLS, config.BIRD_ROWS)
@@ -94,7 +89,7 @@ def main():
         print(f"Frames pássaro: {len(config.bird_frames_uv)}, Aspect: {config.bird_frame_aspect:.2f}, Draw H: {config.BIRD_DRAW_HEIGHT:.2f}")
     else:
         print("Falha textura pássaro.")
-    # Power-ups
+
     loaded_powerup_textures = []
     print("Carregando power-ups individuais...")
     for pu_config in config.POWERUP_CONFIG:
@@ -115,7 +110,6 @@ def main():
         else:
             print(f"Aviso: Falha ao carregar textura para '{pu_type}' em {pu_path}")
 
-    # Tronco
     config.trunk_texture_id, config.trunk_image_width, config.trunk_image_height = load_texture(config.TRUNK_SPRITE_PATH)
     if config.trunk_texture_id:
         glBindTexture(GL_TEXTURE_2D, config.trunk_texture_id)
@@ -124,7 +118,7 @@ def main():
         print(f"Textura do tronco carregada.")
     else:
         print("Falha ao carregar textura do tronco.")
-    # Raízes
+
     config.root_texture_id, config.root_image_width, config.root_image_height = load_texture(config.ROOT_SPRITE_PATH)
     if config.root_texture_id and config.root_image_height > 0:
         config.root_aspect_ratio = config.root_image_width / config.root_image_height
@@ -134,7 +128,6 @@ def main():
         print(f"Textura das raízes carregada, Aspect Ratio: {config.root_aspect_ratio:.2f}")
     else:
         print("Falha ao carregar textura das raízes.")
-    # Chão
     config.ground_texture_id, config.ground_image_width, config.ground_image_height = load_texture(config.GROUND_SPRITE_PATH)
     if config.ground_texture_id:
         glBindTexture(GL_TEXTURE_2D, config.ground_texture_id)
@@ -144,7 +137,6 @@ def main():
         print("Textura do chão carregada.")
     else:
         print("Falha ao carregar textura do chão.")
-    # Nuvens
     loaded_cloud_textures = []
     print("Carregando nuvens...")
     if not config.CLOUD_CONFIG:
@@ -203,32 +195,27 @@ def main():
     glfw.terminate()
     print("Aplicação encerrada.")
 
-# --- Função Render ---
 def render():
     glClearColor(0.53, 0.81, 0.92, 1.0)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
-    # 1. Nuvens
     draw_clouds()
 
-    # 2. Pipes (Tronco e Raízes)
     if config.trunk_texture_id and config.root_texture_id:
          glEnable(GL_TEXTURE_2D)
          glColor4f(1.0, 1.0, 1.0, 1.0)
-         draw_pipes() # draw_pipes fará o bind/unbind necessário
+         draw_pipes()
          glDisable(GL_TEXTURE_2D)
-    else: # Fallback
+    else:
          glDisable(GL_TEXTURE_2D)
          draw_pipes(use_fallback_color=True)
 
-    # 3. Ground
     if config.ground_texture_id:
         glEnable(GL_TEXTURE_2D)
         glColor4f(1.0, 1.0, 1.0, 1.0)
         glBindTexture(GL_TEXTURE_2D, config.ground_texture_id)
-        # Passa os limites do config para draw_ground
         draw_ground(config.world_x_min, config.world_x_max)
         glBindTexture(GL_TEXTURE_2D, 0)
         glDisable(GL_TEXTURE_2D)
@@ -236,14 +223,12 @@ def render():
         glDisable(GL_TEXTURE_2D)
         draw_ground(use_fallback_color=True)
 
-    # 4. Bird & Powerups
     glEnable(GL_TEXTURE_2D)
     glColor4f(1.0, 1.0, 1.0, 1.0)
     draw_bird()
     draw_powerups()
     glDisable(GL_TEXTURE_2D)
 
-    # 5. UI
     draw_text(-0.95, 0.9, f"Score: {config.score}")
     draw_text(-0.95, 0.8, f"Lives: {config.lives}")
     draw_text(-0.95, 0.7, f"High Score: {config.high_score}")
@@ -279,25 +264,22 @@ def render():
     
     glfw.swap_buffers(window)
 
-# --- Callback de Redimensionamento ---
 def window_size_callback(window, width, height):
-    # --- ATUALIZA LIMITES NO CONFIG ---
-    # global world_x_min, world_x_max, world_y_min, world_y_max # Não precisa mais ser global aqui
     if height == 0:
         height = 1
     glViewport(0, 0, width, height)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
     aspect_ratio = width / height
-    if aspect_ratio >= 1.0: # Mais larga ou quadrada
+    if aspect_ratio >= 1.0:
         config.world_x_min, config.world_x_max = -aspect_ratio, aspect_ratio
         config.world_y_min, config.world_y_max = -1.0, 1.0
         glOrtho(config.world_x_min, config.world_x_max, config.world_y_min, config.world_y_max, -1.0, 1.0)
-    else: # Mais alta
+    else:
         config.world_x_min, config.world_x_max = -1.0, 1.0
         config.world_y_min, config.world_y_max = -1.0 / aspect_ratio, 1.0 / aspect_ratio
         glOrtho(config.world_x_min, config.world_x_max, config.world_y_min, config.world_y_max, -1.0, 1.0)
-    # --- FIM ATUALIZAÇÃO ---
+
     print(f"Window Resized: World Coords X:({config.world_x_min:.2f}, {config.world_x_max:.2f}), Y:({config.world_y_min:.2f}, {config.world_y_max:.2f})")
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()

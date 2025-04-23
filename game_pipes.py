@@ -1,11 +1,9 @@
-# game_pipes.py
 from OpenGL.GL import *
 import config
 import random
 import time
 from powerup import PowerUp
 
-# --- draw_pipes (como na versão anterior, com cálculo de repetição) ---
 def draw_pipes(use_fallback_color=False):
     trunk_ok = config.trunk_texture_id is not None and config.trunk_image_height > 0
     root_ok = config.root_texture_id is not None and config.root_image_height > 0
@@ -36,7 +34,6 @@ def draw_pipes(use_fallback_color=False):
             current_gap += config.CHAINSAW_GAP_INCREASE
         actual_top_height = pipe['bottom_height'] + current_gap
         ground_y = -0.9
-        # Desenha Cano Superior
         if not use_fallback_color:
             glBindTexture(GL_TEXTURE_2D, config.trunk_texture_id)
             glBegin(GL_QUADS)
@@ -65,7 +62,7 @@ def draw_pipes(use_fallback_color=False):
             glVertex2f(pipe['x'] + config.PIPE_WIDTH, 1.0)
             glVertex2f(pipe['x'], 1.0)
             glEnd()
-        # Desenha Cano Inferior (Tronco)
+
         if not use_fallback_color:
             glBindTexture(GL_TEXTURE_2D, config.trunk_texture_id)
             glBegin(GL_QUADS)
@@ -94,7 +91,7 @@ def draw_pipes(use_fallback_color=False):
             glVertex2f(pipe['x'] + config.PIPE_WIDTH, pipe['bottom_height'])
             glVertex2f(pipe['x'], pipe['bottom_height'])
             glEnd()
-        # Desenha Base com Raízes
+
         if not use_fallback_color and root_ok:
             glBindTexture(GL_TEXTURE_2D, config.root_texture_id)
             glBegin(GL_QUADS)
@@ -118,13 +115,10 @@ def draw_pipes(use_fallback_color=False):
     elif use_fallback_color:
         glColor3f(1.0, 1.0, 1.0)
 
-# --- update_pipes ---
 def update_pipes(delta_time):
     min_safe_bottom_limit = -1.0 + 0.1
     max_safe_top_limit = 1.0 - 0.1
-    max_safe_bottom_limit_for_bottom = max_safe_top_limit - config.PIPE_GAP
     for pipe in config.pipes:
-        # Move canos
         pipe['x'] -= config.PIPE_SPEED * config.speed_multiplier * delta_time
         if pipe.get('v_speed', 0) != 0:
             delta_y = pipe['v_speed'] * delta_time
@@ -138,9 +132,9 @@ def update_pipes(delta_time):
                 pipe['v_speed'] *= -1
             pipe['bottom_height'] = new_bottom_h
             pipe['top_height'] = new_bottom_h + config.PIPE_GAP
-    config.pipes[:] = [pipe for pipe in config.pipes if pipe['x'] + config.PIPE_WIDTH > -1.0] # Remove canos
+    config.pipes[:] = [pipe for pipe in config.pipes if pipe['x'] + config.PIPE_WIDTH > -1.0]
     current_time = time.time()
-    time_since_last_pipe = current_time - config.last_pipe_time # Gera novos
+    time_since_last_pipe = current_time - config.last_pipe_time
     spawn_interval_adjusted = config.PIPE_SPAWN_INTERVAL / config.speed_multiplier
     pipe_generated_this_frame = False
     if (config.game_started and not config.game_over and time_since_last_pipe > spawn_interval_adjusted):
@@ -195,15 +189,13 @@ def update_pipes(delta_time):
         config.pipes.append(new_pipe)
         pipe_generated_this_frame = True
         config.last_pipe_time = current_time
-    if pipe_generated_this_frame and len(config.pipes) >= 2: # Gera Powerup
+    if pipe_generated_this_frame and len(config.pipes) >= 2:
         previous_pipe = config.pipes[-2]
         newly_created_pipe = config.pipes[-1]
         if random.random() < 0.10:
-            # --- Seleciona tipo de powerup da nova config ---
-            available_pu_types = list(config.powerup_data.keys()) # Obtem tipos carregados
+            available_pu_types = list(config.powerup_data.keys())
             if available_pu_types:
                 powerup_type = random.choice(available_pu_types)
-            # --- Fim Seleção ---
                 prev_right_edge = previous_pipe['x'] + config.PIPE_WIDTH
                 new_left_edge = newly_created_pipe['x']
                 powerup_x = (prev_right_edge + new_left_edge) / 2.0
@@ -218,10 +210,10 @@ def update_pipes(delta_time):
                 max_y_bound = 1.0 - config.POWERUP_DRAW_SIZE * 0.5
                 powerup_y = max(min_y_bound, min(max_y_bound, powerup_y))
                 config.powerups.append(PowerUp(powerup_x, powerup_y, powerup_type))
-    for powerup in config.powerups: # Atualiza powerups
+    for powerup in config.powerups:
         powerup.x -= config.PIPE_SPEED * config.speed_multiplier * delta_time
     config.powerups[:] = [p for p in config.powerups if not p.collected and (p.x + p.collision_size > -1.0)]
-    for pipe in config.pipes: # Pontuação
+    for pipe in config.pipes:
          pipe_right_edge = pipe['x'] + config.PIPE_WIDTH
          if not pipe.get('scored', False) and config.BIRD_X > pipe_right_edge:
               config.score += 1
