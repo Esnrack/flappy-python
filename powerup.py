@@ -66,10 +66,14 @@ def draw_powerups():
 
             # Desenha o Quad
             glBegin(GL_QUADS)
-            glTexCoord2f(u0, v1); glVertex2f(x0, y0) # V-Flip
-            glTexCoord2f(u1, v1); glVertex2f(x1, y0)
-            glTexCoord2f(u1, v0); glVertex2f(x1, y1)
-            glTexCoord2f(u0, v0); glVertex2f(x0, y1)
+            glTexCoord2f(u0, v1)
+            glVertex2f(x0, y0) # V-Flip
+            glTexCoord2f(u1, v1)
+            glVertex2f(x1, y0)
+            glTexCoord2f(u1, v0)
+            glVertex2f(x1, y1)
+            glTexCoord2f(u0, v0)
+            glVertex2f(x0, y1)
             glEnd()
 
     glBindTexture(GL_TEXTURE_2D, 0)

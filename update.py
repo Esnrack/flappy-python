@@ -42,9 +42,14 @@ def update(delta_time):
                     if current_time - powerup.last_frame_time > config.POWERUP_ANIMATION_SPEED:
                         if is_ping_pong:
                             powerup.current_frame += powerup.animation_direction
-                            if powerup.current_frame >= num_frames - 1: powerup.current_frame = num_frames - 1; powerup.animation_direction = -1
-                            elif powerup.current_frame <= 0: powerup.current_frame = 0; powerup.animation_direction = 1
-                        else: powerup.current_frame += 1
+                            if powerup.current_frame >= num_frames - 1:
+                                powerup.current_frame = num_frames - 1
+                                powerup.animation_direction = -1
+                            elif powerup.current_frame <= 0:
+                                powerup.current_frame = 0
+                                powerup.animation_direction = 1
+                        else:
+                            powerup.current_frame += 1
                         powerup.last_frame_time = current_time # Atualiza com tempo real
     # --- FIM ANIMAÇÃO POWER-UPS ---
 
@@ -93,12 +98,14 @@ def update(delta_time):
 
     # --- Lógica Principal do Jogo (Executa apenas se não pausado) ---
     if not config.game_started or config.game_over: # Redundante devido ao check inicial, mas seguro
-        if config.game_over: update_high_score(config.score)
+        if config.game_over:
+            update_high_score(config.score)
         return
 
     # Física Pássaro
     current_gravity = config.GRAVITY
-    if config.heavy_jump_active: current_gravity *= config.HEAVYJUMP_GRAVITY_MULTIPLIER
+    if config.heavy_jump_active:
+        current_gravity *= config.HEAVYJUMP_GRAVITY_MULTIPLIER
     config.bird_velocity += current_gravity * delta_time # Usa delta_time
     config.BIRD_Y += config.bird_velocity * delta_time
 
@@ -120,7 +127,8 @@ def update(delta_time):
     # Invulnerabilidade
     if config.invulnerable and current_game_time > config.invulnerable_time:
         config.invulnerable = False
-        if config.speed_multiplier > 1.0: config.speed_multiplier = 1.0
+        if config.speed_multiplier > 1.0:
+            config.speed_multiplier = 1.0
 
     # Chainsaw Deactivation
     if config.chainsaw_deactivation_pending:
@@ -131,19 +139,26 @@ def update(delta_time):
         pipe_cleared = False
         if last_pipe is not None and last_pipe in config.pipes:
             pipe_right_edge = last_pipe['x'] + config.PIPE_WIDTH
-            if bird_left_edge > pipe_right_edge: pipe_cleared = True
-        else: pipe_cleared = True
+            if bird_left_edge > pipe_right_edge:
+                pipe_cleared = True
+        else:
+            pipe_cleared = True
         if pipe_cleared:
-            config.chainsaw_active = False; config.chainsaw_deactivation_pending = False
-            config.chainsaw_last_pipe_ref = None; print("Chainsaw effect ended.")
+            config.chainsaw_active = False
+            config.chainsaw_deactivation_pending = False
+            config.chainsaw_last_pipe_ref = None
+            print("Chainsaw effect ended.")
 
     # High Score Update
-    if config.score > config.high_score: update_high_score(config.score)
+    if config.score > config.high_score:
+        update_high_score(config.score)
 
     # Heavy Jump Deactivation
     if config.heavy_jump_active and current_game_time > config.heavy_jump_end_time:
-        config.heavy_jump_active = False; print("Heavy Jump effect ended.")
+        config.heavy_jump_active = False
+        print("Heavy Jump effect ended.")
 
     # Shrink Deactivation
     if config.shrink_active and current_game_time > config.shrink_end_time:
-        config.shrink_active = False; print("Shrink effect ended.")
+        config.shrink_active = False
+        print("Shrink effect ended.")

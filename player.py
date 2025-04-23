@@ -28,7 +28,8 @@ def draw_bird():
     current_frame_index = config.bird_current_frame % len(config.bird_frames_uv)
     try:
         u0, v0, u1, v1 = config.bird_frames_uv[current_frame_index] # u0=left, u1=right; v0=bottom, v1=top
-    except IndexError: return # Segurança
+    except IndexError:
+        return # Segurança
 
     glBindTexture(GL_TEXTURE_2D, config.bird_texture_id)
 
