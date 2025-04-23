@@ -5,9 +5,9 @@ import time
 WINDOW_WIDTH, WINDOW_HEIGHT = 800, 600
 GRAVITY = -0.9
 JUMP_STRENGTH = 0.5
-PIPE_WIDTH = 0.15 # Largura para COLISÃO e posicionamento horizontal
-PIPE_GAP = 0.4 # The NORMAL gap size
-PIPE_SPEED = 0.5 # Horizontal speed
+PIPE_WIDTH = 0.15
+PIPE_GAP = 0.4
+PIPE_SPEED = 0.5 # Velocidade horizontal principal (canos, chão)
 INITIAL_LIVES = 3
 PIPE_SPAWN_INTERVAL = 1.4
 
@@ -28,23 +28,51 @@ POWERUP_SPRITE_PATH = "sprites/powerups.png"
 POWERUP_COLS = 5; POWERUP_ROWS = 1
 POWERUP_TYPES = ['life', 'speed', 'chainsaw', 'heavy_jump', 'shrink']
 
-# --- Tree Trunk Sprite (Single Image) ---
-TRUNK_SPRITE_PATH = "sprites/tree_trunk.png" # <<< SEU ARQUIVO DE TRONCO ÚNICO
+TRUNK_SPRITE_PATH = "sprites/tree_trunk.png"
 
-# --- Root Base Sprite ---
-ROOT_SPRITE_PATH = "sprites/tree_roots.png" # <<< SEU ARQUIVO DE RAÍZES
-ROOT_SPRITE_WIDTH_PX = 52 # Original pixel width (used for aspect calc)
-ROOT_SPRITE_HEIGHT_PX = 21 # Original pixel height (used for height calc)
-# Escala da Largura da Raiz (opcional)
-# Multiplicador aplicado à largura PROPORCIONAL da raiz. > 1.0 torna mais largo.
-ROOT_DRAW_WIDTH_SCALE = 1.3 # Ex: Raiz 20% mais larga que sua proporção original
+ROOT_SPRITE_PATH = "sprites/tree_roots.png"
+ROOT_SPRITE_WIDTH_PX = 52
+ROOT_SPRITE_HEIGHT_PX = 21
+ROOT_DRAW_WIDTH_SCALE = 1.3
+
+GROUND_SPRITE_PATH = "sprites/ground.png"
+GROUND_TILE_WORLD_WIDTH = 0.1
+
+# --- Configuração das Nuvens ---
+CLOUD_CONFIG = [
+    {'path': 'sprites/cloud.png',  'cols': 2, 'rows': 1}
+]
+CLOUD_SPAWN_INTERVAL_MIN = 2.5
+CLOUD_SPAWN_INTERVAL_MAX = 5.0
+CLOUD_SPEED_MIN = 0.1
+CLOUD_SPEED_MAX = 0.25
+CLOUD_Y_MIN = 0.3
+CLOUD_Y_MAX = 0.8
+CLOUD_SCALE_MIN = 0.8
+CLOUD_SCALE_MAX = 1.3
+CLOUD_BASE_DRAW_WIDTH = 0.2
+# --- VELOCIDADE DE ANIMAÇÃO DA NUVEM AJUSTADA ---
+CLOUD_ANIMATION_SPEED = 0.5 # Segundos por frame (era 0.2, mais lento agora)
+# --- FIM AJUSTE ---
+
+# Configuração INDIVIDUAL dos Power-ups
+POWERUP_CONFIG = [
+    {'type': 'life',       'path': 'sprites/life.png',       'cols': 12, 'rows': 1, 'ping_pong': False},
+    {'type': 'speed',      'path': 'sprites/speed.png',      'cols': 4, 'rows': 1, 'ping_pong': True},
+    {'type': 'chainsaw',   'path': 'sprites/chainsaw.png',   'cols': 12, 'rows': 1, 'ping_pong': False},
+    {'type': 'heavy_jump', 'path': 'sprites/heavy_jump.png', 'cols': 2, 'rows': 1, 'ping_pong': False},
+    {'type': 'shrink',     'path': 'sprites/shrink.png',     'cols': 5, 'rows': 1, 'ping_pong': False},
+]
+POWERUP_ANIMATION_SPEED = 0.15
 
 # Tamanhos para Desenho
-BIRD_DRAW_WIDTH = 0.15; BIRD_DRAW_HEIGHT = 0.15 # Ajustada por aspect ratio
-POWERUP_DRAW_SIZE = 0.08
+BIRD_DRAW_WIDTH = 0.12
+BIRD_DRAW_HEIGHT = 0.12 # Ajustada por aspect ratio
+POWERUP_DRAW_SIZE = 0.10
 
 # Tamanho para Colisão
-BIRD_COLLISION_SCALE_W = 0.85; BIRD_COLLISION_SCALE_H = 0.75
+BIRD_COLLISION_SCALE_W = 0.65
+BIRD_COLLISION_SCALE_H = 0.65
 POWERUP_COLLISION_SIZE = 0.04
 
 # Configurações para Powerups Específicos
@@ -63,6 +91,12 @@ chainsaw_active = False; chainsaw_pipes_remaining = 0
 chainsaw_deactivation_pending = False; chainsaw_last_pipe_ref = None
 heavy_jump_active = False; heavy_jump_end_time = 0.0
 shrink_active = False; shrink_end_time = 0.0
+ground_offset_x = 0.0
+
+# Variáveis Globais das Nuvens
+clouds = []
+last_cloud_spawn_time = 0.0
+next_cloud_spawn_interval = 0.0
 game_paused = False #  Controla se o jogo está pausado
 pause_start_time = 0.0 # Momento em que o jogo foi pausado
 total_pause_time = 0.0 # Tempo acumulado em pausa
@@ -70,32 +104,18 @@ total_pause_time = 0.0 # Tempo acumulado em pausa
 # Posição inicial do pássaro
 BIRD_X = -0.5; BIRD_Y = 0.0
 
+# High Score
+high_score = 0
+HIGH_SCORE_FILE = "high_score.txt"
+
 # Variáveis Globais para Sprites
 bird_texture_id = None; bird_frames_uv = []; bird_frame_aspect = 1.0
 bird_current_frame = 0; last_frame_time = 0.0
 
-powerup_texture_id = None; powerup_uvs = {}; powerup_frame_aspect = 1.0
+powerup_data = {}
 
-# --- Trunk Sprite ---
-trunk_texture_id = None
-trunk_image_width = 0 # Largura px real
-trunk_image_height = 0 # Altura px real
+trunk_texture_id = None; trunk_image_width = 0; trunk_image_height = 0
+root_texture_id = None; root_image_width = 0; root_image_height = 0; root_aspect_ratio = 1.0
+ground_texture_id = None; ground_image_width = 0; ground_image_height = 0
 
-# --- Root Sprite ---
-root_texture_id = None
-root_image_width = 0 # Largura px real
-root_image_height = 0 # Altura px real
-root_aspect_ratio = 1.0 # Calculado em main.py (largura_px / altura_px)
-# --- FIM Root Sprite ---
-
-high_score = 0  # Variável para armazenar o recorde atual
-HIGH_SCORE_FILE = "high_score.txt"  # Nome do arquivo onde o recorde será salvo
-
-def get_game_time():
-    """Retorna o tempo de jogo descontando as pausas."""
-    if not game_started:
-        return 0.0
-    if game_paused:
-        return pause_start_time - total_pause_time
-    else:
-        return time.time() - total_pause_time
+cloud_data = {}
