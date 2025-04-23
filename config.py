@@ -8,7 +8,7 @@ GRAVITY = -0.9
 JUMP_STRENGTH = 0.5
 PIPE_WIDTH = 0.15
 PIPE_GAP = 0.4
-PIPE_SPEED = 0.5
+PIPE_SPEED = 0.5 # Velocidade horizontal principal (canos, chão)
 INITIAL_LIVES = 3
 PIPE_SPAWN_INTERVAL = 1.4
 MAX_PIPE_HEIGHT_CHANGE = 0.4
@@ -23,35 +23,52 @@ BIRD_COLS = 24
 BIRD_ROWS = 1
 BIRD_ANIMATION_SPEED = 0.1
 
-# --- Tree Trunk Sprite (Single Image) ---
 TRUNK_SPRITE_PATH = "sprites/tree_trunk.png"
 
-# --- Root Base Sprite ---
 ROOT_SPRITE_PATH = "sprites/tree_roots.png"
 ROOT_SPRITE_WIDTH_PX = 52
 ROOT_SPRITE_HEIGHT_PX = 21
 ROOT_DRAW_WIDTH_SCALE = 1.3
 
-# --- Configuração INDIVIDUAL dos Power-ups ---
+GROUND_SPRITE_PATH = "sprites/ground.png"
+GROUND_TILE_WORLD_WIDTH = 0.1
+
+# --- Configuração das Nuvens ---
+CLOUD_CONFIG = [
+    {'path': 'sprites/cloud.png',  'cols': 2, 'rows': 1}
+]
+CLOUD_SPAWN_INTERVAL_MIN = 2.5
+CLOUD_SPAWN_INTERVAL_MAX = 5.0
+CLOUD_SPEED_MIN = 0.1
+CLOUD_SPEED_MAX = 0.25
+CLOUD_Y_MIN = 0.3
+CLOUD_Y_MAX = 0.8
+CLOUD_SCALE_MIN = 0.8
+CLOUD_SCALE_MAX = 1.3
+CLOUD_BASE_DRAW_WIDTH = 0.2
+# --- VELOCIDADE DE ANIMAÇÃO DA NUVEM AJUSTADA ---
+CLOUD_ANIMATION_SPEED = 0.5 # Segundos por frame (era 0.2, mais lento agora)
+# --- FIM AJUSTE ---
+
+# Configuração INDIVIDUAL dos Power-ups
 POWERUP_CONFIG = [
-    {'type': 'life',       'path': 'sprites/pu_life.png',       'cols': 1, 'rows': 1, 'ping_pong': False},
-    {'type': 'speed',      'path': 'sprites/speed.png',         'cols': 4, 'rows': 1, 'ping_pong': True},
+    {'type': 'life',       'path': 'sprites/life.png',       'cols': 12, 'rows': 1, 'ping_pong': False},
+    {'type': 'speed',      'path': 'sprites/speed.png',      'cols': 4, 'rows': 1, 'ping_pong': True},
     {'type': 'chainsaw',   'path': 'sprites/chainsaw.png',   'cols': 12, 'rows': 1, 'ping_pong': False},
     {'type': 'heavy_jump', 'path': 'sprites/heavy_jump.png', 'cols': 2, 'rows': 1, 'ping_pong': False},
     {'type': 'shrink',     'path': 'sprites/shrink.png',     'cols': 5, 'rows': 1, 'ping_pong': False},
 ]
-POWERUP_ANIMATION_SPEED = 0.15 # Segundos por frame
+POWERUP_ANIMATION_SPEED = 0.15
 
 # Tamanhos para Desenho
-BIRD_DRAW_WIDTH = 0.15
-BIRD_DRAW_HEIGHT = 0.15 # Ajustada por aspect ratio
-# POWERUP_DRAW_SIZE agora define a LARGURA de desenho desejada
-POWERUP_DRAW_SIZE = 0.10 # Ajuste conforme necessário para o tamanho desejado
+BIRD_DRAW_WIDTH = 0.12
+BIRD_DRAW_HEIGHT = 0.12 # Ajustada por aspect ratio
+POWERUP_DRAW_SIZE = 0.10
 
 # Tamanho para Colisão
-BIRD_COLLISION_SCALE_W = 0.75
-BIRD_COLLISION_SCALE_H = 0.75
-POWERUP_COLLISION_SIZE = 0.04 # Raio/Metade do tamanho para colisão
+BIRD_COLLISION_SCALE_W = 0.65
+BIRD_COLLISION_SCALE_H = 0.65
+POWERUP_COLLISION_SIZE = 0.04
 
 # Configurações para Powerups Específicos (Efeitos)
 POWERUP_Y_RANGE_AROUND_PATH = 0.5
@@ -83,6 +100,12 @@ heavy_jump_active = False
 heavy_jump_end_time = 0.0
 shrink_active = False
 shrink_end_time = 0.0
+ground_offset_x = 0.0
+
+# Variáveis Globais das Nuvens
+clouds = []
+last_cloud_spawn_time = 0.0
+next_cloud_spawn_interval = 0.0
 
 # Posição inicial do pássaro
 BIRD_X = -0.5
@@ -92,23 +115,14 @@ BIRD_Y = 0.0
 high_score = 0
 HIGH_SCORE_FILE = "high_score.txt"
 
-# --- Variáveis Globais para Sprites ---
-bird_texture_id = None
-bird_frames_uv = []
-bird_frame_aspect = 1.0
-bird_current_frame = 0
-last_frame_time = 0.0
+# Variáveis Globais para Sprites
+bird_texture_id = None; bird_frames_uv = []; bird_frame_aspect = 1.0
+bird_current_frame = 0; last_frame_time = 0.0
 
-# Dicionário para armazenar dados carregados dos powerups
 powerup_data = {}
 
-# Trunk Sprite
-trunk_texture_id = None
-trunk_image_width = 0
-trunk_image_height = 0
+trunk_texture_id = None; trunk_image_width = 0; trunk_image_height = 0
+root_texture_id = None; root_image_width = 0; root_image_height = 0; root_aspect_ratio = 1.0
+ground_texture_id = None; ground_image_width = 0; ground_image_height = 0
 
-# Root Sprite
-root_texture_id = None
-root_image_width = 0
-root_image_height = 0
-root_aspect_ratio = 1.0
+cloud_data = {}
