@@ -1,50 +1,18 @@
-# rendering.py
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 import config
-import time
 
-# --- draw_background RESTAURADA ---
-def draw_background(x_min, x_max, y_min, y_max):
-    """Desenha a textura de background esticada para cobrir a área visível."""
-    # A textura já deve estar vinculada por render()
-    # Wrap mode CLAMP_TO_EDGE já foi setado
-    U0, V0 = 0.0, 0.0 # UV: v=0 é base da imagem
-    U1, V1 = 1.0, 1.0 # UV: v=1 é topo da imagem
-
-    glBegin(GL_QUADS)
-    # Mapeamento UV com V invertido
-    glTexCoord2f(U0, V1)
-    glVertex2f(x_min, y_min) # Bottom-Left Vert -> Top-Left Tex UV (V=1)
-    glTexCoord2f(U1, V1)
-    glVertex2f(x_max, y_min) # Bottom-Right Vert -> Top-Right Tex UV (V=1)
-    glTexCoord2f(U1, V0)
-    glVertex2f(x_max, y_max) # Top-Right Vert -> Bottom-Right Tex UV (V=0)
-    glTexCoord2f(U0, V0)
-    glVertex2f(x_min, y_max) # Top-Left Vert -> Bottom-Left Tex UV (V=0)
-    glEnd()
-# --- FIM draw_background ---
-
-# --- draw_clouds RESTAURADA ---
 def draw_clouds():
-    """Desenha todas as nuvens ativas."""
-    # Itera sobre a lista de nuvens em config
-    # A classe Cloud deve estar definida em clouds.py e importada onde é usada (update.py)
     for cloud in config.clouds:
-        # O objeto cloud tem seu próprio método draw que lida com textura e fallback
         cloud.draw()
-# --- FIM draw_clouds ---
 
-
-# --- draw_ground ---
 def draw_ground(world_x_min=-1.5, world_x_max=1.5, use_fallback_color=False):
-    """Desenha o chão com textura repetida cobrindo a largura visível ou cor sólida."""
 
     x_min, x_max = world_x_min, world_x_max
-    y_min, y_max = -1.0, -0.9 # Posição Y fixa do chão
+    y_min, y_max = -1.0, -0.9
 
     if use_fallback_color or not config.ground_texture_id:
-        glColor3f(0.6, 0.3, 0.1) # Marrom
+        glColor3f(0.6, 0.3, 0.1)
         glBegin(GL_QUADS)
         glVertex2f(x_min, y_max)
         glVertex2f(x_max, y_max)
@@ -76,10 +44,8 @@ def draw_ground(world_x_min=-1.5, world_x_max=1.5, use_fallback_color=False):
         glVertex2f(x_min, y_min)
         glEnd()
 
-# --- draw_text ---
 def draw_text(x, y, text, font=GLUT_BITMAP_HELVETICA_18):
-    """Desenha texto na tela usando GLUT."""
-    glColor3f(0.0, 0.0, 0.0) # Preto
+    glColor3f(0.0, 0.0, 0.0)
     glRasterPos2f(x, y)
     for char in text:
         glutBitmapCharacter(font, ord(char))
