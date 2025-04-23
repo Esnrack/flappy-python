@@ -63,8 +63,10 @@ class Cloud:
             glDisable(GL_TEXTURE_2D)
             glColor4f(1.0, 1.0, 1.0, 0.8)
             glBegin(GL_QUADS)
-            glVertex2f(x0, y0); glVertex2f(x1, y0)
-            glVertex2f(x1, y1); glVertex2f(x0, y1)
+            glVertex2f(x0, y0)
+            glVertex2f(x1, y0)
+            glVertex2f(x1, y1)
+            glVertex2f(x0, y1)
             glEnd()
             glColor4f(1.0, 1.0, 1.0, 1.0)
         else:
@@ -75,18 +77,25 @@ class Cloud:
             uvs_list = cloud_info['uvs']
             num_frames = len(uvs_list)
 
-            if num_frames == 0: return
+            if num_frames == 0:
+                return
 
             frame_index = self.current_frame % num_frames
 
-            try: u0, v0, u1, v1 = uvs_list[frame_index]
-            except IndexError: return
+            try:
+                u0, v0, u1, v1 = uvs_list[frame_index]
+            except IndexError:
+                return
 
             glBindTexture(GL_TEXTURE_2D, tex_id)
             glColor4f(1.0, 1.0, 1.0, 1.0)
             glBegin(GL_QUADS)
-            glTexCoord2f(u0, v1); glVertex2f(x0, y0) # V-Flip
-            glTexCoord2f(u1, v1); glVertex2f(x1, y0)
-            glTexCoord2f(u1, v0); glVertex2f(x1, y1)
-            glTexCoord2f(u0, v0); glVertex2f(x0, y1)
+            glTexCoord2f(u0, v1)
+            glVertex2f(x0, y0) # V-Flip
+            glTexCoord2f(u1, v1)
+            glVertex2f(x1, y0)
+            glTexCoord2f(u1, v0)
+            glVertex2f(x1, y1)
+            glTexCoord2f(u0, v0)
+            glVertex2f(x0, y1)
             glEnd()

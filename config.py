@@ -46,9 +46,7 @@ CLOUD_Y_MAX = 0.8
 CLOUD_SCALE_MIN = 0.8
 CLOUD_SCALE_MAX = 1.3
 CLOUD_BASE_DRAW_WIDTH = 0.2
-# --- VELOCIDADE DE ANIMAÇÃO DA NUVEM AJUSTADA ---
-CLOUD_ANIMATION_SPEED = 0.5 # Segundos por frame (era 0.2, mais lento agora)
-# --- FIM AJUSTE ---
+CLOUD_ANIMATION_SPEED = 0.5 # Segundos por frame
 
 # Configuração INDIVIDUAL dos Power-ups
 POWERUP_CONFIG = [
@@ -102,10 +100,12 @@ shrink_active = False
 shrink_end_time = 0.0
 ground_offset_x = 0.0
 
-# Variáveis Globais das Nuvens
-clouds = []
-last_cloud_spawn_time = 0.0
-next_cloud_spawn_interval = 0.0
+# --- Variáveis de Pausa ---
+game_paused = False # Controla se o jogo está pausado
+pause_start_time = 0.0 # Momento em que o jogo foi pausado
+total_pause_duration = 0.0 # Tempo acumulado em pausa (RENOMEADO de total_pause_time)
+# --- FIM Pausa ---
+
 
 # Posição inicial do pássaro
 BIRD_X = -0.5
@@ -115,14 +115,33 @@ BIRD_Y = 0.0
 high_score = 0
 HIGH_SCORE_FILE = "high_score.txt"
 
-# Variáveis Globais para Sprites
-bird_texture_id = None; bird_frames_uv = []; bird_frame_aspect = 1.0
-bird_current_frame = 0; last_frame_time = 0.0
+# --- Variáveis Globais para Sprites ---
+bird_texture_id = None
+bird_frames_uv = []
+bird_frame_aspect = 1.0
+bird_current_frame = 0
+last_frame_time = 0.0
 
 powerup_data = {}
 
-trunk_texture_id = None; trunk_image_width = 0; trunk_image_height = 0
-root_texture_id = None; root_image_width = 0; root_image_height = 0; root_aspect_ratio = 1.0
-ground_texture_id = None; ground_image_width = 0; ground_image_height = 0
+trunk_texture_id = None
+trunk_image_width = 0
+trunk_image_height = 0
+root_texture_id = None
+root_image_width = 0
+root_image_height = 0
+root_aspect_ratio = 1.0
+ground_texture_id = None
+ground_image_width = 0
+ground_image_height = 0
 
 cloud_data = {}
+clouds = []
+last_cloud_spawn_time = 0.0
+next_cloud_spawn_interval = 0.0
+
+# --- Variáveis Globais para limites do Ortho ---
+world_x_min = -1.0 * (WINDOW_WIDTH / WINDOW_HEIGHT) if WINDOW_WIDTH >= WINDOW_HEIGHT else -1.0
+world_x_max = 1.0 * (WINDOW_WIDTH / WINDOW_HEIGHT) if WINDOW_WIDTH >= WINDOW_HEIGHT else 1.0
+world_y_min = -1.0 if WINDOW_WIDTH >= WINDOW_HEIGHT else -1.0 / (WINDOW_WIDTH / WINDOW_HEIGHT)
+world_y_max = 1.0 if WINDOW_WIDTH >= WINDOW_HEIGHT else 1.0 / (WINDOW_WIDTH / WINDOW_HEIGHT)
